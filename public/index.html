@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PULSE | Emergency Dispatch & Traffic-Aware Routing Command Center</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <!-- Socket.io client -->
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header>
+    <div class="logo-section">
+      <!-- Heart Waveform Pulsing SVG Icon -->
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+      </svg>
+      <h1>PULSE <span>Emergency Dispatch Command</span></h1>
+    </div>
+    
+    <div class="header-badges">
+      <div id="incidents-badge" class="badge warning">
+        ACTIVE INCIDENTS <span class="count" id="active-incidents-count">0</span>
+      </div>
+      <div id="critical-badge" class="badge danger">
+        CRITICAL <span class="count" id="critical-incidents-count">0</span>
+      </div>
+      <div class="live-indicator">
+        <span class="live-dot"></span>
+        LIVE
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Dashboard Grid Layout -->
+  <div class="dashboard-container">
+    
+    <!-- Left Sidebar: Fleet Status -->
+    <aside class="left-sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-title-row">
+          <h2>Fleet Status</h2>
+          <span class="unit-count" id="fleet-unit-count">0 UNITS</span>
+        </div>
+        <div class="filter-buttons">
+          <button id="filter-all" class="filter-btn active" onclick="setFilter('ALL')">All</button>
+          <button id="filter-enroute" class="filter-btn" onclick="setFilter('EN ROUTE')">En Route</button>
+          <button id="filter-idle" class="filter-btn" onclick="setFilter('IDLE')">Idle</button>
+        </div>
+      </div>
+      <div class="fleet-list" id="fleet-list-container">
+        <!-- Dynamic Fleet Cards list goes here -->
+      </div>
+    </aside>
+
+    <!-- Center Section: Leaflet Map & HUD overlays -->
+    <main class="middle-section">
+      <div class="map-wrapper">
+        <!-- Coordinates HUD overlay -->
+        <div class="coordinates-hud">
+          <div>LAT: <span class="hud-val" id="hud-lat">37.7749° N</span></div>
+          <div>LNG: <span class="hud-val" id="hud-lng">122.4194° W</span></div>
+          <div>ZOOM: <span class="hud-val" id="hud-zoom">13</span></div>
+        </div>
+
+        <!-- Legend HUD overlay -->
+        <div class="map-legend">
+          <div class="legend-title">Legend</div>
+          <div class="legend-item">
+            <div class="legend-color active-unit"></div>
+            <span>Active Unit</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color idle-unit"></div>
+            <span>Idle Unit</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color incident"></div>
+            <span>Incident</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color hospital"></div>
+            <span>Hospital</span>
+          </div>
+        </div>
+
+        <!-- Leaflet Map Div -->
+        <div id="map"></div>
+      </div>
+    </main>
+
+    <!-- Right Sidebar: Selected Unit Routing Inspector & Controls -->
+    <aside class="right-sidebar">
+      <div class="inspector-header">
+        <h2>Unit Details</h2>
+      </div>
+      <div class="inspector-content" id="inspector-content-container">
+        <!-- Default State: Empty / Instruction -->
+        <div class="empty-inspector" id="empty-inspector-view">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+          </svg>
+          <p>Select a unit to view live tracking details, dynamic routing options, and simulate road traffic jams.</p>
+        </div>
+
+        <!-- Active Unit View (Hidden by default) -->
+        <div class="inspector-details" id="active-inspector-view" style="display: none;">
+          <!-- Unit Header Card -->
+          <div class="unit-info-header">
+            <div class="unit-info-title">
+              <h3 id="inspect-unit-name">RESCUE-103</h3>
+              <p>Crew: <span id="inspect-unit-crew" style="color: #fff; font-family: var(--font-mono)">2</span></p>
+            </div>
+            <div id="inspect-unit-badge" class="status-badge en_route">En Route</div>
+          </div>
+
+          <!-- Route Optimization Stats -->
+          <div class="optimizer-card" id="routing-stats-card">
+            <div class="optimizer-header">
+              <span class="optimizer-title">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display:inline; vertical-align:middle; margin-right:4px;">
+                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                </svg>
+                Traffic Routing
+              </span>
+              <span class="optimizer-badge">Active</span>
+            </div>
+            <div class="time-saved-hero">
+              <div class="time-saved-val" id="routing-time-saved">0 min</div>
+              <div class="time-saved-lbl">Estimated Time Saved</div>
+            </div>
+            <div class="comparison-stats">
+              <div class="stat-box">
+                <div class="stat-box-lbl">Distance Only</div>
+                <div class="stat-box-val" id="routing-dist-only">-- mins</div>
+              </div>
+              <div class="stat-box optimized">
+                <div class="stat-box-lbl">Traffic-Aware</div>
+                <div class="stat-box-val" id="routing-traffic-aware">-- mins</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dispatch Operations (Forms & Buttons) -->
+          <div class="dispatch-control-panel">
+            <div class="control-title">Tactical Controls</div>
+            
+            <!-- Dispatch to Incident Group -->
+            <div id="dispatch-group" style="display: none;">
+              <div class="form-group">
+                <label for="incident-select">Select Active Incident</label>
+                <select id="incident-select" class="form-select">
+                  <!-- Dynamic Incidents -->
+                </select>
+              </div>
+              <button class="btn-primary" onclick="triggerDispatch()">Dispatch Unit</button>
+            </div>
+
+            <!-- Reroute to Hospital Group -->
+            <div id="reroute-group" style="display: none;">
+              <div class="form-group">
+                <label for="hospital-select">Reroute to Medical Center</label>
+                <select id="hospital-select" class="form-select">
+                  <option value="H1">SF General Hospital (Trauma)</option>
+                  <option value="H2">UCSF Medical Center (Trauma)</option>
+                  <option value="H3">Chinese Hospital (General)</option>
+                </select>
+              </div>
+              <button class="btn-primary" onclick="triggerReroute()">Reroute Unit</button>
+            </div>
+
+            <!-- Busy State (No controls) -->
+            <div id="busy-no-controls" style="display: none; font-size: 11px; color: var(--color-text-muted); text-align: center; padding: 10px 0;">
+              Unit is currently handling medical tasks at the scene.
+            </div>
+          </div>
+
+          <!-- Congestion Injector Control Dashboard -->
+          <div class="jam-simulator">
+            <div class="control-title">Congestion & Obstacle Simulator</div>
+            <div class="jam-list" id="congestion-list-container">
+              <!-- Dynamic street lists -->
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- Bottom Info Panel: Hospital Bed Capacities & Live Incidents Notifications feed -->
+  <footer class="bottom-bar">
+    <div class="bottom-label-section">
+      <h3>Hospital Status</h3>
+      <div class="stats-count">3 <span>FACILITIES</span></div>
+    </div>
+    
+    <div class="facilities-container" id="facilities-container-row">
+      <!-- Dynamic Hospital status cards go here -->
+    </div>
+
+    <div class="notifications-feed-container">
+      <div class="notifications-header">Live Command Center Log</div>
+      <div class="notifications-list" id="notifications-list-container">
+        <!-- Dynamic logs -->
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
