@@ -3,217 +3,568 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PULSE | Emergency Dispatch & Traffic-Aware Routing Command Center</title>
+  <title>VitaRoute | Intelligent Ambulance Routing</title>
   <link rel="stylesheet" href="style.css">
-  <!-- Leaflet CSS -->
+  <!-- Leaflet CSS (for dashboard) -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <!-- Socket.io client -->
   <script src="/socket.io/socket.io.js"></script>
+  <!-- Three.js for 3D landing page -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
 
-  <!-- Top Navigation Header -->
-  <header>
-    <div class="logo-section">
-      <!-- Heart Waveform Pulsing SVG Icon -->
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-      </svg>
-      <h1>PULSE <span>Emergency Dispatch Command</span></h1>
-    </div>
-    
-    <div class="header-badges">
-      <div id="incidents-badge" class="badge warning">
-        ACTIVE INCIDENTS <span class="count" id="active-incidents-count">0</span>
-      </div>
-      <div id="critical-badge" class="badge danger">
-        CRITICAL <span class="count" id="critical-incidents-count">0</span>
-      </div>
-      <div class="live-indicator">
-        <span class="live-dot"></span>
-        LIVE
-      </div>
-    </div>
-  </header>
+  <!-- ========================================
+       LANDING PAGE (3D Hero)
+       ======================================== -->
+  <div id="landing-page">
+    <canvas id="three-canvas"></canvas>
 
-  <!-- Main Dashboard Grid Layout -->
-  <div class="dashboard-container">
-    
-    <!-- Left Sidebar: Fleet Status -->
-    <aside class="left-sidebar">
-      <div class="sidebar-header">
-        <div class="sidebar-title-row">
-          <h2>Fleet Status</h2>
-          <span class="unit-count" id="fleet-unit-count">0 UNITS</span>
-        </div>
-        <div class="filter-buttons">
-          <button id="filter-all" class="filter-btn active" onclick="setFilter('ALL')">All</button>
-          <button id="filter-enroute" class="filter-btn" onclick="setFilter('EN ROUTE')">En Route</button>
-          <button id="filter-idle" class="filter-btn" onclick="setFilter('IDLE')">Idle</button>
+    <!-- Navbar -->
+    <nav class="lp-navbar">
+      <div class="lp-navbar-inner">
+        <div class="lp-logo">VitaRoute</div>
+        <div class="lp-nav-group">
+          <a href="#features" class="lp-nav-link">Features</a>
+          <a href="#solutions" class="lp-nav-link">Solutions</a>
+          <a href="#pricing" class="lp-nav-link">Pricing</a>
+          <button class="lp-btn-primary" onclick="enterDashboard()">
+            Get Free Access
+            <span class="lp-btn-arrow">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                <path d="M1 5H9M9 5L5 1M9 5L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </button>
         </div>
       </div>
-      <div class="fleet-list" id="fleet-list-container">
-        <!-- Dynamic Fleet Cards list goes here -->
-      </div>
-    </aside>
+    </nav>
 
-    <!-- Center Section: Leaflet Map & HUD overlays -->
-    <main class="middle-section">
-      <div class="map-wrapper">
-        <!-- Coordinates HUD overlay -->
-        <div class="coordinates-hud">
-          <div>LAT: <span class="hud-val" id="hud-lat">37.7749° N</span></div>
-          <div>LNG: <span class="hud-val" id="hud-lng">122.4194° W</span></div>
-          <div>ZOOM: <span class="hud-val" id="hud-zoom">13</span></div>
+    <!-- Hero Section -->
+    <section class="lp-hero">
+      <div class="lp-hero-grid">
+        <div class="lp-hero-left">
+          <h1 class="lp-headline">
+            Save Lives with<br>
+            Intelligent<br>
+            Ambulance<br>
+            Routing
+          </h1>
+          <p class="lp-subtext">Built for EMS teams, dispatchers, and hospitals</p>
         </div>
-
-        <!-- Legend HUD overlay -->
-        <div class="map-legend">
-          <div class="legend-title">Legend</div>
-          <div class="legend-item">
-            <div class="legend-color active-unit"></div>
-            <span>Active Unit</span>
-          </div>
-          <div class="legend-item">
-            <div class="legend-color idle-unit"></div>
-            <span>Idle Unit</span>
-          </div>
-          <div class="legend-item">
-            <div class="legend-color incident"></div>
-            <span>Incident</span>
-          </div>
-          <div class="legend-item">
-            <div class="legend-color hospital"></div>
-            <span>Hospital</span>
-          </div>
-        </div>
-
-        <!-- Leaflet Map Div -->
-        <div id="map"></div>
-      </div>
-    </main>
-
-    <!-- Right Sidebar: Selected Unit Routing Inspector & Controls -->
-    <aside class="right-sidebar">
-      <div class="inspector-header">
-        <h2>Unit Details</h2>
-      </div>
-      <div class="inspector-content" id="inspector-content-container">
-        <!-- Default State: Empty / Instruction -->
-        <div class="empty-inspector" id="empty-inspector-view">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-          </svg>
-          <p>Select a unit to view live tracking details, dynamic routing options, and simulate road traffic jams.</p>
-        </div>
-
-        <!-- Active Unit View (Hidden by default) -->
-        <div class="inspector-details" id="active-inspector-view" style="display: none;">
-          <!-- Unit Header Card -->
-          <div class="unit-info-header">
-            <div class="unit-info-title">
-              <h3 id="inspect-unit-name">RESCUE-103</h3>
-              <p>Crew: <span id="inspect-unit-crew" style="color: #fff; font-family: var(--font-mono)">2</span></p>
-            </div>
-            <div id="inspect-unit-badge" class="status-badge en_route">En Route</div>
-          </div>
-
-          <!-- Route Optimization Stats -->
-          <div class="optimizer-card" id="routing-stats-card">
-            <div class="optimizer-header">
-              <span class="optimizer-title">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display:inline; vertical-align:middle; margin-right:4px;">
-                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+        <div class="lp-hero-right">
+          <p class="lp-description">
+            Real-time traffic intelligence.<br>
+            Dynamic routing.<br>
+            Faster hospital arrivals.
+          </p>
+          <div class="lp-cta-group">
+            <button class="lp-btn-primary lp-btn-lg" onclick="enterDashboard()">
+              Get Free Access
+              <span class="lp-btn-arrow">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                  <path d="M1 5H9M9 5L5 1M9 5L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                Traffic Routing
               </span>
-              <span class="optimizer-badge">Active</span>
-            </div>
-            <div class="time-saved-hero">
-              <div class="time-saved-val" id="routing-time-saved">0 min</div>
-              <div class="time-saved-lbl">Estimated Time Saved</div>
-            </div>
-            <div class="comparison-stats">
-              <div class="stat-box">
-                <div class="stat-box-lbl">Distance Only</div>
-                <div class="stat-box-val" id="routing-dist-only">-- mins</div>
-              </div>
-              <div class="stat-box optimized">
-                <div class="stat-box-lbl">Traffic-Aware</div>
-                <div class="stat-box-val" id="routing-traffic-aware">-- mins</div>
-              </div>
-            </div>
+            </button>
+            <button class="lp-btn-secondary lp-btn-lg">Learn More</button>
           </div>
-
-          <!-- Dispatch Operations (Forms & Buttons) -->
-          <div class="dispatch-control-panel">
-            <div class="control-title">Tactical Controls</div>
-            
-            <!-- Dispatch to Incident Group -->
-            <div id="dispatch-group" style="display: none;">
-              <div class="form-group">
-                <label for="incident-select">Select Active Incident</label>
-                <select id="incident-select" class="form-select">
-                  <!-- Dynamic Incidents -->
-                </select>
-              </div>
-              <button class="btn-primary" onclick="triggerDispatch()">Dispatch Unit</button>
-            </div>
-
-            <!-- Reroute to Hospital Group -->
-            <div id="reroute-group" style="display: none;">
-              <div class="form-group">
-                <label for="hospital-select">Reroute to Medical Center</label>
-                <select id="hospital-select" class="form-select">
-                  <option value="H1">SF General Hospital (Trauma)</option>
-                  <option value="H2">UCSF Medical Center (Trauma)</option>
-                  <option value="H3">Chinese Hospital (General)</option>
-                </select>
-              </div>
-              <button class="btn-primary" onclick="triggerReroute()">Reroute Unit</button>
-            </div>
-
-            <!-- Busy State (No controls) -->
-            <div id="busy-no-controls" style="display: none; font-size: 11px; color: var(--color-text-muted); text-align: center; padding: 10px 0;">
-              Unit is currently handling medical tasks at the scene.
-            </div>
-          </div>
-
-          <!-- Congestion Injector Control Dashboard -->
-          <div class="jam-simulator">
-            <div class="control-title">Congestion & Obstacle Simulator</div>
-            <div class="jam-list" id="congestion-list-container">
-              <!-- Dynamic street lists -->
-            </div>
-          </div>
-
         </div>
       </div>
-    </aside>
+    </section>
+  </div>
+
+  <!-- ========================================
+       THIRD PAGE: Partners Section (3D)
+       ======================================== -->
+  <div id="partners-page">
+    <canvas id="partners-canvas"></canvas>
+
+    <!-- Navbar -->
+    <nav class="lp-navbar">
+      <div class="lp-navbar-inner">
+        <div class="lp-logo">VitaRoute</div>
+        <div class="lp-nav-group">
+          <a href="#features" class="lp-nav-link">Features</a>
+          <a href="#solutions" class="lp-nav-link">Solutions</a>
+          <a href="#pricing" class="lp-nav-link">Pricing</a>
+          <button class="lp-btn-primary" onclick="enterDashboard()">
+            Get Free Access
+            <span class="lp-btn-arrow">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                <path d="M1 5H9M9 5L5 1M9 5L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Partners Content -->
+    <section class="partners-section">
+      <div class="partners-content">
+        <p class="partners-label">OUR PARTNERS</p>
+        <h2 class="partners-headline">Built for these teams</h2>
+        <div class="partners-grid">
+          <div class="partner-card">
+            <div class="partner-icon-3d">
+              <div class="icon3d icon3d-cross">
+                <div class="icon3d-base"></div>
+                <div class="icon3d-shape cross-v"></div>
+                <div class="icon3d-shape cross-h"></div>
+                <div class="icon3d-glow"></div>
+              </div>
+            </div>
+            <span class="partner-name">RED CROSS</span>
+          </div>
+          <div class="partner-card">
+            <div class="partner-icon-3d">
+              <div class="icon3d icon3d-hospital">
+                <div class="icon3d-base"></div>
+                <div class="icon3d-shape building-main"></div>
+                <div class="icon3d-shape building-wing-l"></div>
+                <div class="icon3d-shape building-wing-r"></div>
+                <div class="icon3d-shape building-cross"></div>
+                <div class="icon3d-glow"></div>
+              </div>
+            </div>
+            <span class="partner-name">HOSPITALS</span>
+          </div>
+          <div class="partner-card">
+            <div class="partner-icon-3d">
+              <div class="icon3d icon3d-ambulance">
+                <div class="icon3d-base"></div>
+                <div class="icon3d-shape amb-body"></div>
+                <div class="icon3d-shape amb-cabin"></div>
+                <div class="icon3d-shape amb-wheel-l"></div>
+                <div class="icon3d-shape amb-wheel-r"></div>
+                <div class="icon3d-shape amb-light"></div>
+                <div class="icon3d-glow"></div>
+              </div>
+            </div>
+            <span class="partner-name">AMBULANCE SERVICES</span>
+          </div>
+          <div class="partner-card">
+            <div class="partner-icon-3d">
+              <div class="icon3d icon3d-ems">
+                <div class="icon3d-base"></div>
+                <div class="icon3d-shape ems-line"></div>
+                <div class="icon3d-shape ems-dot1"></div>
+                <div class="icon3d-shape ems-dot2"></div>
+                <div class="icon3d-shape ems-dot3"></div>
+                <div class="icon3d-glow"></div>
+              </div>
+            </div>
+            <span class="partner-name">EMS NETWORKS</span>
+          </div>
+          <div class="partner-card">
+            <div class="partner-icon-3d">
+              <div class="icon3d icon3d-dispatch">
+                <div class="icon3d-base"></div>
+                <div class="icon3d-shape dispatch-head"></div>
+                <div class="icon3d-shape dispatch-band"></div>
+                <div class="icon3d-shape dispatch-mic"></div>
+                <div class="icon3d-glow"></div>
+              </div>
+            </div>
+            <span class="partner-name">DISPATCH CENTERS</span>
+          </div>
+          <div class="partner-card">
+            <div class="partner-icon-3d">
+              <div class="icon3d icon3d-trauma">
+                <div class="icon3d-base"></div>
+                <div class="icon3d-shape shield-body"></div>
+                <div class="icon3d-shape shield-cross-v"></div>
+                <div class="icon3d-shape shield-cross-h"></div>
+                <div class="icon3d-glow"></div>
+              </div>
+            </div>
+            <span class="partner-name">TRAUMA CENTERS</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ========================================
+       FOURTH PAGE: Features Section (3D)
+       ======================================== -->
+  <div id="features-page">
+    <canvas id="features-canvas"></canvas>
+
+    <!-- Navbar -->
+    <nav class="lp-navbar features-nav">
+      <div class="lp-navbar-inner">
+        <div class="lp-logo">VitaRoute</div>
+        <div class="lp-nav-group">
+          <a href="#features" class="lp-nav-link">Features</a>
+          <a href="#solutions" class="lp-nav-link">Solutions</a>
+          <a href="#pricing" class="lp-nav-link">Pricing</a>
+          <button class="lp-btn-primary" onclick="enterDashboard()">
+            Get Free Access
+            <span class="lp-btn-arrow">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                <path d="M1 5H9M9 5L5 1M9 5L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Features Content -->
+    <section class="features-section">
+      <div class="features-content">
+        <h2 class="features-headline">Built for Critical Moments</h2>
+        <p class="features-subtext">Powerful features that help ambulances reach hospitals faster and save more lives.</p>
+        
+        <div class="features-grid">
+          <!-- Card 1: Real-Time Traffic Intelligence -->
+          <div class="feature-card">
+            <div class="feature-card-image">
+              <div class="feature-scene scene-traffic">
+                <div class="scene-bg"></div>
+                <!-- Highway lanes -->
+                <div class="highway">
+                  <div class="lane lane-1"></div>
+                  <div class="lane lane-2"></div>
+                  <div class="lane-divider"></div>
+                </div>
+                <!-- Cars on highway -->
+                <div class="car car-1"></div>
+                <div class="car car-2"></div>
+                <div class="car car-3"></div>
+                <div class="car car-4"></div>
+                <!-- Network nodes -->
+                <div class="net-line nl-1"></div>
+                <div class="net-line nl-2"></div>
+                <div class="net-line nl-3"></div>
+                <div class="net-node nn-1"><span></span></div>
+                <div class="net-node nn-2"><span></span></div>
+                <div class="net-node nn-3"><span></span></div>
+                <div class="net-node nn-4"><span></span></div>
+                <!-- Data panels -->
+                <div class="data-panel dp-traffic">
+                  <div class="dp-title">TRAFFIC FLOW</div>
+                  <div class="dp-value">92<span>%</span></div>
+                  <div class="dp-bar"><div class="dp-bar-fill" style="width:92%"></div></div>
+                </div>
+                <div class="data-panel dp-speed">
+                  <div class="dp-title">AVG SPEED</div>
+                  <div class="dp-value">34<span>mph</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="feature-card-content">
+              <h3 class="feature-title">Real-Time Traffic Intelligence</h3>
+              <p class="feature-desc">Live updates from multiple sources. Avoid delays before they happen.</p>
+            </div>
+          </div>
+
+          <!-- Card 2: Dynamic Route Optimization -->
+          <div class="feature-card">
+            <div class="feature-card-image">
+              <div class="feature-scene scene-route">
+                <div class="scene-bg"></div>
+                <!-- City blocks -->
+                <div class="city-block cb-1"></div>
+                <div class="city-block cb-2"></div>
+                <div class="city-block cb-3"></div>
+                <div class="city-block cb-4"></div>
+                <!-- Route paths -->
+                <svg class="route-svg" viewBox="0 0 280 200" fill="none">
+                  <path d="M30,170 C60,170 70,140 90,120 C110,100 130,60 160,50 C190,40 220,45 250,30" stroke="#00f0ff" stroke-width="3" stroke-linecap="round" opacity="0.9"/>
+                  <path d="M30,170 C50,160 80,165 100,150 C120,135 140,100 170,90 C200,80 230,60 250,30" stroke="#00ff9d" stroke-width="2.5" stroke-dasharray="6 4" stroke-linecap="round" opacity="0.7"/>
+                  <path d="M30,170 C60,180 100,175 130,160 C160,145 180,110 200,80 C220,50 240,35 250,30" stroke="#ff6b35" stroke-width="2" stroke-dasharray="3 3" stroke-linecap="round" opacity="0.5"/>
+                  <!-- Start/End markers -->
+                  <circle cx="30" cy="170" r="5" fill="#00f0ff"/>
+                  <circle cx="250" cy="30" r="5" fill="#ff4757"/>
+                  <circle cx="30" cy="170" r="8" fill="none" stroke="#00f0ff" stroke-width="1" opacity="0.4"/>
+                  <circle cx="250" cy="30" r="8" fill="none" stroke="#ff4757" stroke-width="1" opacity="0.4"/>
+                </svg>
+                <!-- Route panels -->
+                <div class="data-panel dp-route">
+                  <div class="dp-title">ROUTE OPTIONS</div>
+                  <div class="dp-route-item active">
+                    <span class="dp-dot" style="background:#00f0ff"></span>
+                    <span>Fastest</span>
+                    <span class="dp-eta">8 min</span>
+                  </div>
+                  <div class="dp-route-item">
+                    <span class="dp-dot" style="background:#00ff9d"></span>
+                    <span>Alternative</span>
+                    <span class="dp-eta">11 min</span>
+                  </div>
+                </div>
+                <div class="data-panel dp-ai">
+                  <div class="dp-title">AI OPTIMIZATION</div>
+                  <div class="dp-value">Active</div>
+                </div>
+              </div>
+            </div>
+            <div class="feature-card-content">
+              <h3 class="feature-title">Dynamic Route Optimization</h3>
+              <p class="feature-desc">AI that adapts instantly to changing road conditions.</p>
+            </div>
+          </div>
+
+          <!-- Card 3: Smart Hospital Integration -->
+          <div class="feature-card">
+            <div class="feature-card-image">
+              <div class="feature-scene scene-hospital">
+                <div class="scene-bg"></div>
+                <!-- Hospital building -->
+                <div class="hosp-building">
+                  <div class="hosp-main"></div>
+                  <div class="hosp-wing hosp-wing-l"></div>
+                  <div class="hosp-wing hosp-wing-r"></div>
+                  <div class="hosp-cross-icon">+</div>
+                  <div class="hosp-door"></div>
+                </div>
+                <!-- Ambulance icon -->
+                <div class="hosp-amb">
+                  <div class="hosp-amb-body"></div>
+                  <div class="hosp-amb-cross">+</div>
+                </div>
+                <!-- Connection line -->
+                <div class="hosp-conn-line"></div>
+                <!-- Status cards -->
+                <div class="data-panel dp-bed">
+                  <div class="dp-title">BED MANAGEMENT</div>
+                  <div class="dp-value">128<span>/200</span></div>
+                  <div class="dp-bar"><div class="dp-bar-fill" style="width:64%;background:#00ff9d"></div></div>
+                </div>
+                <div class="data-panel dp-equip">
+                  <div class="dp-title">EMERGENCY</div>
+                  <div class="dp-status-dot" style="background:#00ff9d"></div>
+                  <span class="dp-status-text">READY</span>
+                </div>
+                <div class="data-panel dp-pharma">
+                  <div class="dp-title">PHARMACY</div>
+                  <div class="dp-value">94<span>%</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="feature-card-content">
+              <h3 class="feature-title">Smart Hospital Integration</h3>
+              <p class="feature-desc">Automatic alerts so hospitals are ready when you arrive.</p>
+            </div>
+          </div>
+
+          <!-- Card 4: Live Fleet Tracking -->
+          <div class="feature-card">
+            <div class="feature-card-image">
+              <div class="feature-scene scene-fleet">
+                <div class="scene-bg"></div>
+                <!-- Map grid -->
+                <div class="map-grid"></div>
+                <!-- Route lines -->
+                <svg class="fleet-route-svg" viewBox="0 0 280 200" fill="none">
+                  <path d="M40,160 C80,140 100,100 140,80 C180,60 200,50 240,40" stroke="#00f0ff" stroke-width="2.5" stroke-linecap="round"/>
+                  <path d="M60,180 C90,150 120,130 150,120 C180,110 210,70 230,50" stroke="#7b61ff" stroke-width="2" stroke-dasharray="5 3" stroke-linecap="round" opacity="0.6"/>
+                </svg>
+                <!-- Vehicle markers -->
+                <div class="fleet-marker fm-1">
+                  <span class="fm-id">01</span>
+                  <span class="fm-status" style="background:#00ff9d"></span>
+                </div>
+                <div class="fleet-marker fm-2">
+                  <span class="fm-id">02</span>
+                  <span class="fm-status" style="background:#00f0ff"></span>
+                </div>
+                <div class="fleet-marker fm-3">
+                  <span class="fm-id">03</span>
+                  <span class="fm-status" style="background:#f59e0b"></span>
+                </div>
+                <div class="fleet-marker fm-4">
+                  <span class="fm-id">04</span>
+                  <span class="fm-status" style="background:#00ff9d"></span>
+                </div>
+                <!-- Alert panel -->
+                <div class="data-panel dp-alerts">
+                  <div class="dp-title">RECENT ALERTS</div>
+                  <div class="dp-alert-item"><span class="dp-alert-dot" style="background:#ff4757"></span>Vehicle 03 — Rerouted</div>
+                  <div class="dp-alert-item"><span class="dp-alert-dot" style="background:#f59e0b"></span>Vehicle 01 — ETA updated</div>
+                </div>
+                <div class="data-panel dp-fleet-count">
+                  <div class="dp-title">ACTIVE FLEET</div>
+                  <div class="dp-value">14<span>/18</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="feature-card-content">
+              <h3 class="feature-title">Live Fleet Tracking</h3>
+              <p class="feature-desc">Real-time location of all ambulances with status updates.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ========================================
+       SECOND PAGE: Hero + Command Center Dashboard
+       ======================================== -->
+  <div id="dashboard-view" style="display: none;">
+
+    <!-- Page 2 Hero Section -->
+    <section class="vr-hero2">
+      <nav class="lp-navbar vr-hero2-nav">
+        <div class="lp-navbar-inner">
+          <div class="lp-logo">VitaRoute</div>
+          <div class="lp-nav-group">
+            <a href="#" class="lp-nav-link">Features</a>
+            <a href="#" class="lp-nav-link">Solutions</a>
+            <a href="#" class="lp-nav-link">Pricing</a>
+            <button class="lp-btn-primary">
+              Get Free Access
+              <span class="lp-btn-arrow">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                  <path d="M1 5H9M9 5L5 1M9 5L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
+            </button>
+          </div>
+        </div>
+      </nav>
+      <div class="vr-hero2-content">
+        <div class="vr-hero2-grid">
+          <div class="vr-hero2-left">
+            <p class="vr-hero2-label">VITAROUTE COMMAND CENTER</p>
+            <h1 class="vr-hero2-headline">
+              Every minute lost costs lives.<br>
+              <span>VitaRoute</span> eliminates the delay
+            </h1>
+            <div class="vr-hero2-cta">
+              <button class="lp-btn-primary lp-btn-lg">
+                Get Free Access
+                <span class="lp-btn-arrow">
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                    <path d="M1 5H9M9 5L5 1M9 5L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </span>
+              </button>
+              <button class="lp-btn-outline lp-btn-lg">Watch Demo</button>
+            </div>
+          </div>
+          <div class="vr-hero2-right">
+            <p class="vr-hero2-desc">Monitor ambulances in real time, predict traffic delays, and automatically guide emergency vehicles through the fastest available routes</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Dashboard Command Center -->
+    <div class="vr-dash">
+      <!-- Dashboard Header -->
+      <div class="vr-dash-header">
+        <div class="vr-dash-header-left">
+          <h2 class="vr-dash-title">VitaRoute</h2>
+          <div class="vr-dash-tabs">
+            <button class="vr-dash-tab active" data-tab="hospital">City General Hospital</button>
+            <button class="vr-dash-tab" data-tab="command">Command Center</button>
+          </div>
+        </div>
+        <div class="vr-dash-header-right">
+          <button class="vr-icon-btn" title="Search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></button>
+          <button class="vr-icon-btn" title="User"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></button>
+          <button class="vr-icon-btn" title="Calendar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></button>
+          <button class="vr-icon-btn vr-bell-btn" title="Alerts"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="vr-bell-dot"></span></button>
+        </div>
+      </div>
+
+      <!-- Metric Cards Row -->
+      <div class="vr-metrics" id="vr-metrics">
+        <div class="vr-metric-card">
+          <div class="vr-metric-top"><span class="vr-metric-label">Total Ambulances Online</span><span class="vr-dot vr-dot-green"></span></div>
+          <div class="vr-metric-bottom"><span class="vr-metric-value" id="m-ambulances">14</span><span class="vr-metric-tag vr-tag-green">Online</span></div>
+        </div>
+        <div class="vr-metric-card">
+          <div class="vr-metric-top"><span class="vr-metric-label">Average Response Time</span></div>
+          <div class="vr-metric-bottom"><span class="vr-metric-value" id="m-resptime">6.4 min</span><svg class="vr-sparkline" viewBox="0 0 60 24" id="spark-resp"><polyline points="0,18 10,14 20,16 30,8 40,12 50,6 60,10" fill="none" stroke="#f59e0b" stroke-width="2"/></svg></div>
+        </div>
+        <div class="vr-metric-card">
+          <div class="vr-metric-top"><span class="vr-metric-label">Active Calls</span></div>
+          <div class="vr-metric-bottom"><span class="vr-metric-value" id="m-activecalls">7</span><svg class="vr-sparkline" viewBox="0 0 60 24" id="spark-calls"><polyline points="0,12 10,8 20,16 30,4 40,14 50,10 60,6" fill="none" stroke="#ef4444" stroke-width="2"/></svg></div>
+        </div>
+        <div class="vr-metric-card">
+          <div class="vr-metric-top"><span class="vr-metric-label">Completed Today</span></div>
+          <div class="vr-metric-bottom"><span class="vr-metric-value" id="m-completed">24</span></div>
+        </div>
+        <div class="vr-metric-card">
+          <div class="vr-metric-top"><span class="vr-metric-label">Critical Calls</span></div>
+          <div class="vr-metric-bottom"><span class="vr-metric-value vr-value-red" id="m-critical">3</span><span class="vr-metric-tag vr-tag-red">High Priority</span></div>
+        </div>
+      </div>
+
+      <!-- Main Content: Map + Missions -->
+      <div class="vr-main">
+        <div class="vr-map-section">
+          <div id="vr-map"></div>
+          <div class="vr-map-legend">
+            <div class="vr-map-legend-title">Traffic Heatmap</div>
+            <div class="vr-map-legend-bar"></div>
+            <div class="vr-map-legend-labels"><span>Low</span><span>High</span></div>
+          </div>
+        </div>
+        <div class="vr-missions">
+          <div class="vr-missions-header">
+            <h3>Active Missions</h3>
+            <select class="vr-missions-filter"><option>All Missions</option></select>
+          </div>
+          <div class="vr-missions-list" id="vr-missions-list"></div>
+          <div class="vr-missions-footer"><a href="#">View All Missions</a></div>
+        </div>
+      </div>
+
+      <!-- Bottom Row Cards -->
+      <div class="vr-bottom">
+        <div class="vr-card vr-card-hospital">
+          <div class="vr-card-head"><h4>Hospital Readiness</h4><span class="vr-help-icon">?</span></div>
+          <div class="vr-card-body" id="vr-hospitals-list"></div>
+        </div>
+        <div class="vr-card vr-card-readiness">
+          <div class="vr-card-head"><h4>Live Readiness</h4></div>
+          <div class="vr-card-body vr-readiness-body">
+            <div class="vr-gauge-wrap"><svg class="vr-gauge" viewBox="0 0 120 120" id="vr-readiness-gauge"></svg><div class="vr-gauge-center"><span class="vr-gauge-val" id="vr-readiness-pct">65%</span><span class="vr-gauge-lbl">Overall</span></div></div>
+            <div class="vr-readiness-stats" id="vr-readiness-stats">
+              <div class="vr-rstat"><span class="vr-dot vr-dot-green"></span><span>Available</span><strong id="rs-available">23</strong></div>
+              <div class="vr-rstat"><span class="vr-dot vr-dot-yellow"></span><span>On Duty</span><strong id="rs-onduty">15</strong></div>
+              <div class="vr-rstat"><span class="vr-dot vr-dot-red"></span><span>Busy</span><strong id="rs-busy">8</strong></div>
+            </div>
+          </div>
+        </div>
+        <div class="vr-card vr-card-alerts">
+          <div class="vr-card-head"><h4>Live Alerts</h4></div>
+          <div class="vr-card-body vr-alerts-body" id="vr-alerts-list"></div>
+        </div>
+        <div class="vr-card vr-card-vehicle">
+          <div class="vr-card-head"><h4>Vehicle Status</h4></div>
+          <div class="vr-card-body vr-vehicle-body">
+            <div class="vr-gauge-wrap"><svg class="vr-gauge" viewBox="0 0 120 120" id="vr-vehicle-gauge"></svg><div class="vr-gauge-center"><span class="vr-gauge-val" id="vr-vehicle-total">14</span><span class="vr-gauge-lbl">Total</span></div></div>
+            <div class="vr-vehicle-legend" id="vr-vehicle-legend">
+              <div class="vr-vleg"><span class="vr-dot vr-dot-green"></span><span>On Mission</span><strong id="vl-mission">7</strong></div>
+              <div class="vr-vleg"><span class="vr-dot vr-dot-yellow"></span><span>Available</span><strong id="vl-available">4</strong></div>
+              <div class="vr-vleg"><span class="vr-dot vr-dot-red"></span><span>Maintenance</span><strong id="vl-maint">2</strong></div>
+              <div class="vr-vleg"><span class="vr-dot vr-dot-gray"></span><span>Offline</span><strong id="vl-offline">1</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Bar -->
+      <div class="vr-footer">
+        <div class="vr-footer-left"><span class="vr-footer-icon">&#9729;</span><span id="vr-weather">24&deg;C Partly Cloudy</span></div>
+        <div class="vr-footer-center"><span class="vr-footer-icon vr-footer-bell">&#128276;</span><span id="vr-traffic-alert">High traffic on Main St. Expect delays of 5-10 min.</span></div>
+        <div class="vr-footer-right"><span id="vr-clock">10:24 AM</span><span id="vr-date">May 26, 2025</span></div>
+      </div>
+    </div>
 
   </div>
 
-  <!-- Bottom Info Panel: Hospital Bed Capacities & Live Incidents Notifications feed -->
-  <footer class="bottom-bar">
-    <div class="bottom-label-section">
-      <h3>Hospital Status</h3>
-      <div class="stats-count">3 <span>FACILITIES</span></div>
-    </div>
-    
-    <div class="facilities-container" id="facilities-container-row">
-      <!-- Dynamic Hospital status cards go here -->
-    </div>
-
-    <div class="notifications-feed-container">
-      <div class="notifications-header">Live Command Center Log</div>
-      <div class="notifications-list" id="notifications-list-container">
-        <!-- Dynamic logs -->
-      </div>
-    </div>
-  </footer>
-
+  <script src="landing.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
