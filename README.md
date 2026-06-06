@@ -1,23 +1,27 @@
-# PULSE: Emergency Dispatch & Traffic-Aware Routing Center
+# VitaRoute: Intelligent Emergency Response & Ambulance Coordination Platform
 
-PULSE is a real-time command center dashboard designed for emergency fleet dispatchers. It maps ambulances, active incidents, and hospitals in San Francisco on a dark-themed geospatial map. The core feature of PULSE is its **Traffic-Aware Routing Engine** which calculates the fastest path (less traffic) rather than just the shortest path (by distance) to transport patients to hospitals and respond to incidents, saving critical minutes.
+VitaRoute is an intelligent emergency response and ambulance coordination platform that optimizes dispatching, route planning, real-time GPS tracking, hospital readiness monitoring, and emergency fleet management to improve response times and patient outcomes. It features an immersive 3D landing experience, a partners showcase, a features dashboard, and a full real-time command center.
 
 ## Core Features
-1. **Real-time Telemetry (WebSocket-driven)**: Real-time synchronization of fleet status, vehicle speeds, and location telemetry every 3 seconds via Socket.io.
-2. **Dynamic Routing Engine**: Uses Dijkstra's algorithm on a custom graph network of San Francisco streets. The engine recalculates paths when gridlocks are detected.
-3. **Double Path Visualization**:
-   - **Optimized Path (Solid Glow)**: Colored by street-by-street congestion levels (Green: Clear, Yellow: Moderate, Red: Heavy).
-   - **Alternative Path (Dashed Grey)**: Shows the standard distance-only path for visual comparison.
-4. **Interactive Simulation**:
-   - **Congestion Simulator**: Artificially block/unblock streets in the inspector panel to trigger immediate real-time ambulance rerouting and display "Time Saved" metrics.
-   - **Tactical Dispatcher**: Dispatches idle/returning ambulances to active incidents and reroutes en-route units to alternative hospitals based on ER capacity loads.
-5. **Hospital Bed Capacities**: Displays ER status updates (`NORMAL`, `BUSY`, `CRITICAL`) and capacity load in real-time as patients are admitted.
+1. **Immersive 3D Landing Page**: Three.js-powered feather particle system with parallax depth, organic motion, and scroll-driven transitions.
+2. **Partners Section**: Showcases 6 key partners (Red Cross, Hospitals, Ambulance Services, EMS Networks, Dispatch Centers, Trauma Centers) with 3D CSS-rendered icons and warm red-orange particle effects.
+3. **Features Dashboard**: "Built for Critical Moments" section with 4 interactive feature cards — Real-Time Traffic Intelligence, Dynamic Route Optimization, Smart Hospital Integration, and Live Fleet Tracking — each with detailed CSS 3D scene visualizations.
+4. **Real-Time Command Center**:
+   - **Traffic-Aware Routing Engine**: Dijkstra's algorithm on a custom San Francisco street graph, recalculating paths when gridlocks are detected.
+   - **Double Path Visualization**: Optimized path (solid glow, colored by congestion) vs. alternative path (dashed grey) for comparison.
+   - **Congestion Simulator**: Block/unblock streets to trigger real-time ambulance rerouting with "Time Saved" metrics.
+   - **Tactical Dispatcher**: Dispatches idle/returning ambulances to incidents and reroutes based on ER capacity.
+5. **Hospital ER Capacity Monitoring**: Live status updates (`NORMAL`, `BUSY`, `CRITICAL`) and capacity load as patients are admitted.
+6. **Live Fleet Tracking**: Real-time location of all ambulances with status telemetry every 3 seconds via Socket.io.
 
 ---
 
 ## Technical Stack
-- **Backend**: Node.js, Express, Socket.io (WebSocket server).
-- **Frontend**: Vanilla HTML5, CSS3 Grid/Flexbox, JavaScript, Leaflet.js (dark tile layer by CartoDB).
+- **Backend**: Node.js, Express, Socket.io (WebSocket server)
+- **Frontend**: Vanilla HTML5, CSS3 (3D transforms, Grid/Flexbox), JavaScript
+- **3D Graphics**: Three.js (particle systems, feather meshes, network lines)
+- **Maps**: Leaflet.js (dark CartoDB tiles), Dijkstra pathfinding
+- **Real-time**: Socket.io for fleet telemetry and ER capacity updates
 
 ---
 
@@ -27,36 +31,37 @@ PULSE is a real-time command center dashboard designed for emergency fleet dispa
 - Node.js installed on your machine.
 
 ### Steps
-1. Navigate to the project directory:
+1. Clone the repository:
    ```bash
-   cd /Users/shambhawi/Desktop/Pulse
+   git clone https://github.com/shambhawikrishnatrya/VitaRoute.git
+   cd VitaRoute
    ```
-2. Install npm dependencies:
+2. Install dependencies:
    ```bash
    npm install
    ```
-3. Run the pathfinding algorithm unit test script:
+3. Run the pathfinding unit tests:
    ```bash
    npm test
    ```
-4. Start the command center server:
+4. Start the server:
    ```bash
    npm start
    ```
-5. Open your web browser and navigate to:
-   [http://localhost:3000](http://localhost:3000)
+5. Open your browser at: [http://localhost:3000](http://localhost:3000)
 
 ---
 
 ## Project Structure
 ```
-/Users/shambhawi/Desktop/Pulse
-├── package.json          # Node dependencies and npm scripts
-├── server.js             # Main server logic, simulation loops, graph definitions, and WebSocket server
-├── test-pathfinding.js   # Unit tests validating Dijkstra pathfinding under different traffic jams
+VitaRoute/
+├── package.json          # Dependencies and npm scripts
+├── server.js             # Server logic, simulation loops, graph definitions, WebSocket
+├── test-pathfinding.js   # Unit tests for Dijkstra pathfinding
 ├── README.md             # Project documentation
-└── public/               # Frontend asset folder
-    ├── index.html        # Dashboard frame layout & HUD containers
-    ├── style.css         # Styling, glassmorphic filters, and keyframe pulsing animations
-    └── app.js            # Leaflet initialization, Socket.io listeners, and client Dijkstra calculators
+└── public/               # Frontend assets
+    ├── index.html        # Landing page, partners, features, and dashboard layout
+    ├── style.css         # Styling, 3D effects, glassmorphic filters, animations
+    ├── landing.js        # Three.js 3D scenes (landing, partners, features)
+    └── app.js            # Leaflet map, Socket.io listeners, client-side routing
 ```
