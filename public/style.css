@@ -2828,3 +2828,161 @@ body.dashboard-active #benefits-page {
   color: #fff;
   border-color: rgba(200, 50, 50, 0.3);
 }
+
+/* ========================================
+   TENTH PAGE: Testimonials Section
+   ======================================== */
+#testimonials-page {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  background: #000;
+  overflow: hidden;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+}
+body.dashboard-active #testimonials-page {
+  display: none;
+}
+#testimonials-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.test-section {
+  position: relative;
+  width: 100%;
+  padding: 80px 0;
+  z-index: 2;
+  border-top: 1px dashed rgba(255,255,255,0.15);
+  border-bottom: 1px dashed rgba(255,255,255,0.15);
+}
+.test-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+.test-header {
+  text-align: center;
+  margin-bottom: 60px;
+  position: relative;
+}
+.test-header::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -20%;
+  right: -20%;
+  height: 1px;
+  background: repeating-linear-gradient(90deg, transparent, transparent 4px, rgba(255,255,255,0.15) 4px, rgba(255,255,255,0.15) 8px);
+  z-index: -1;
+}
+.test-label {
+  display: inline-block;
+  background: #000;
+  padding: 0 20px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+}
+.test-headline {
+  font-size: 48px;
+  font-weight: 700;
+  color: #fff;
+  margin-top: 20px;
+  letter-spacing: -1px;
+}
+
+.test-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+}
+
+.test-card {
+  position: relative;
+  background: rgba(10, 10, 10, 0.6);
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  padding: 40px;
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.4s ease;
+  transform: translateZ(0);
+}
+.test-card:hover {
+  transform: translateY(-10px) scale(1.02);
+  border-color: rgba(0, 200, 255, 0.5);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.8), inset 0 0 20px rgba(255,255,255,0.02);
+}
+
+.test-profile {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px dashed rgba(255,255,255,0.15);
+}
+.test-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+.test-info {
+  display: flex;
+  flex-direction: column;
+}
+.test-name {
+  font-size: 16px;
+  color: #fff;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.test-role {
+  font-size: 10px;
+  color: rgba(255,255,255,0.4);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.test-quote {
+  font-size: 17px;
+  color: rgba(255,255,255,0.75);
+  line-height: 1.6;
+  font-style: italic;
+  flex-grow: 1;
+}
+
+.test-card-tag {
+  position: absolute;
+  top: -12px;
+  left: 20px;
+  background: #3b82f6;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 2px;
+  text-transform: uppercase;
+}
+
+@media (max-width: 1000px) {
+  .test-grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+}

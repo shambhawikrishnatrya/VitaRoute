@@ -1325,6 +1325,76 @@
   };
 })();
 
+// ─── TESTIMONIALS PAGE 3D SCENE (10th Page) ──────────────────────────────────
+(function () {
+  'use strict';
+  var canvas = document.getElementById('testimonials-canvas');
+  if (!canvas || typeof THREE === 'undefined') return;
+
+  var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  var scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x020202);
+  scene.fog = new THREE.FogExp2(0x020202, 0.04);
+
+  var camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.set(0, 0, 15);
+
+  // Particles / Stars
+  var count = 300;
+  var geo = new THREE.BufferGeometry();
+  var pos = new Float32Array(count * 3);
+  for (var i = 0; i < count; i++) {
+    pos[i*3]   = (Math.random()-0.5) * 40;
+    pos[i*3+1] = (Math.random()-0.5) * 30;
+    pos[i*3+2] = (Math.random()-0.5) * 20 - 5;
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  var mat = new THREE.PointsMaterial({
+    color: 0x88ccff, size: 0.08, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending
+  });
+  var pts = new THREE.Points(geo, mat);
+  scene.add(pts);
+
+  // Mouse tracking
+  var mx = 0, my = 0;
+  document.addEventListener('mousemove', function (e) {
+    mx = (e.clientX / window.innerWidth - 0.5) * 2;
+    my = (e.clientY / window.innerHeight - 0.5) * 2;
+  });
+
+  function onResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  }
+  window.addEventListener('resize', onResize);
+
+  var animId = null;
+  var t0 = performance.now();
+  function animate() {
+    var t = (performance.now() - t0) * 0.001;
+    camera.position.x += (mx * 2 - camera.position.x) * 0.05;
+    camera.position.y += (-my * 1.5 - camera.position.y) * 0.05;
+    camera.lookAt(0, 0, -5);
+
+    pts.rotation.y = t * 0.02;
+    pts.rotation.x = Math.sin(t * 0.1) * 0.01;
+
+    renderer.render(scene, camera);
+    animId = requestAnimationFrame(animate);
+  }
+  animate();
+
+  window._stopTestimonialsScene = function () {
+    if (animId) { cancelAnimationFrame(animId); animId = null; }
+    window.removeEventListener('resize', onResize);
+    renderer.dispose();
+  };
+})();
+
 // ─── Navigation State ─────────────────────────────────────────────────────────
 var currentPage = 'landing'; // 'landing', 'partners', 'dashboard'
 var isTransitioning = false;
@@ -1343,6 +1413,7 @@ function enterDashboard() {
   if (window._stopDispatcherScene) window._stopDispatcherScene();
   if (window._stopSolutionsScene) window._stopSolutionsScene();
   if (window._stopBenefitsScene) window._stopBenefitsScene();
+  if (window._stopTestimonialsScene) window._stopTestimonialsScene();
 
   var landing = document.getElementById('landing-page');
   var partners = document.getElementById('partners-page');
@@ -1352,6 +1423,7 @@ function enterDashboard() {
   var dispatcherpage = document.getElementById('dispatcher-page');
   var solutionspage = document.getElementById('solutions-page');
   var benefitspage = document.getElementById('benefits-page');
+  var testimonialspage = document.getElementById('testimonials-page');
   var dashboard = document.getElementById('dashboard-view');
 
   // Hide all pages, show dashboard
@@ -1363,6 +1435,7 @@ function enterDashboard() {
   if (dispatcherpage) dispatcherpage.style.display = 'none';
   if (solutionspage) solutionspage.style.display = 'none';
   if (benefitspage) benefitspage.style.display = 'none';
+  if (testimonialspage) testimonialspage.style.display = 'none';
   if (dashboard) dashboard.style.display = 'block';
 
   // Apply dashboard body class (allows scrolling)
