@@ -240,7 +240,7 @@
   bgCanvas.width = 4;
   bgCanvas.height = 512;
   var bgCtx = bgCanvas.getContext('2d');
-  var grad = bgCanvas.createLinearGradient(0, 0, 0, 512);
+  var grad = bgCtx.createLinearGradient(0, 0, 0, 512);
   grad.addColorStop(0.0, '#e86040');
   grad.addColorStop(0.3, '#d85038');
   grad.addColorStop(0.6, '#c84030');
@@ -1647,3 +1647,30 @@ function enterDashboard() {
     }, 100);
   }
 }
+
+// ─── 3D SCROLL MOTION OBSERVER ────────────────────────────────────────────────
+(function() {
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in-view');
+      } else {
+        entry.target.classList.remove('in-view');
+      }
+    });
+  }, { threshold: 0.15 });
+
+  var pages = [
+    'landing-page', 'partners-page', 'features-page', 'keyfeatures-page', 
+    'route-page', 'dispatcher-page', 'solutions-page', 'benefits-page', 
+    'testimonials-page', 'pricing-page', 'cta-page'
+  ];
+  
+  pages.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) {
+      el.classList.add('scroll-3d-section');
+      observer.observe(el);
+    }
+  });
+})();

@@ -2739,7 +2739,7 @@ body.dashboard-active #solutions-page {
   position: relative;
   min-height: 100vh;
   width: 100%;
-  background: #000;
+  background: transparent;
   overflow: hidden;
   z-index: 10;
 }
@@ -2839,7 +2839,7 @@ body.dashboard-active #benefits-page {
   position: relative;
   min-height: 100vh;
   width: 100%;
-  background: #000;
+  background: transparent;
   overflow: hidden;
   z-index: 10;
   display: flex;
@@ -2997,7 +2997,7 @@ body.dashboard-active #testimonials-page {
   position: relative;
   min-height: 100vh;
   width: 100%;
-  background: #000;
+  background: transparent;
   overflow: hidden;
   z-index: 10;
   display: flex;
@@ -3213,7 +3213,7 @@ body.dashboard-active #pricing-page {
   position: relative;
   min-height: 100vh;
   width: 100%;
-  background: #000;
+  background: transparent;
   overflow: hidden;
   z-index: 10;
   display: flex;
@@ -3387,4 +3387,19 @@ body.dashboard-active #cta-page {
   .footer-brand {
     grid-column: span 1;
   }
+}
+
+/* ========================================
+   3D SCROLL EFFECTS
+   ======================================== */
+.scroll-3d-section {
+  transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: center center;
+  transform: perspective(1500px) translateZ(-150px) rotateX(4deg);
+  opacity: 0.3;
+}
+
+.scroll-3d-section.in-view {
+  transform: perspective(1500px) translateZ(0) rotateX(0deg);
+  opacity: 1;
 }
