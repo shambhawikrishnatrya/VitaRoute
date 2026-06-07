@@ -1463,6 +1463,123 @@
   };
 })();
 
+// ─── CTA & FOOTER PAGE 3D SCENE (12th Page) ──────────────────────────────────
+(function () {
+  'use strict';
+  var canvas = document.getElementById('cta-canvas');
+  if (!canvas || typeof THREE === 'undefined') return;
+
+  var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  var scene = new THREE.Scene();
+  
+  // Background gradient (peach/pink/red)
+  var bgCanvas = document.createElement('canvas');
+  bgCanvas.width = 4;
+  bgCanvas.height = 512;
+  var bgCtx = bgCanvas.getContext('2d');
+  var grad = bgCtx.createLinearGradient(0, 0, 0, 512);
+  grad.addColorStop(0.0, '#ffe0d0');
+  grad.addColorStop(0.4, '#ff8080');
+  grad.addColorStop(0.8, '#dd2222');
+  grad.addColorStop(1.0, '#440000');
+  bgCtx.fillStyle = grad;
+  bgCtx.fillRect(0, 0, 4, 512);
+  scene.background = new THREE.CanvasTexture(bgCanvas);
+  
+  scene.fog = new THREE.FogExp2(0xcc2222, 0.02);
+
+  var camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.set(0, 0, 20);
+
+  var ambientLight = new THREE.AmbientLight(0xffcccc, 0.8);
+  scene.add(ambientLight);
+
+  var dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+  dirLight.position.set(5, 5, 5);
+  scene.add(dirLight);
+
+  // Swirling Organic Vortex geometry
+  var geo = new THREE.TorusKnotGeometry(8, 3, 150, 32);
+  var mat = new THREE.MeshStandardMaterial({
+    color: 0xff3333,
+    roughness: 0.3,
+    metalness: 0.2,
+    transparent: true,
+    opacity: 0.85,
+    wireframe: false,
+    emissive: 0x550000,
+    emissiveIntensity: 0.4
+  });
+  
+  var vortex = new THREE.Mesh(geo, mat);
+  vortex.position.set(8, -5, -5); // Position it to the right like in the reference image
+  scene.add(vortex);
+
+  // Floating particles
+  var pGeo = new THREE.BufferGeometry();
+  var pCount = 400;
+  var pPos = new Float32Array(pCount * 3);
+  for(var i=0; i<pCount; i++) {
+    pPos[i*3] = (Math.random() - 0.5) * 60;
+    pPos[i*3+1] = (Math.random() - 0.5) * 60;
+    pPos[i*3+2] = (Math.random() - 0.5) * 40;
+  }
+  pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+  var pMat = new THREE.PointsMaterial({color: 0xffaaaa, size: 0.2, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending});
+  var particles = new THREE.Points(pGeo, pMat);
+  scene.add(particles);
+
+  // Mouse tracking
+  var mx = 0, my = 0;
+  document.addEventListener('mousemove', function (e) {
+    mx = (e.clientX / window.innerWidth - 0.5) * 2;
+    my = (e.clientY / window.innerHeight - 0.5) * 2;
+  });
+
+  function onResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  }
+  window.addEventListener('resize', onResize);
+
+  var animId = null;
+  var t0 = performance.now();
+  function animate() {
+    var t = (performance.now() - t0) * 0.001;
+    camera.position.x += (mx * 3 - camera.position.x) * 0.05;
+    camera.position.y += (-my * 2 - camera.position.y) * 0.05;
+    camera.lookAt(0, 0, 0);
+
+    vortex.rotation.x = t * 0.3;
+    vortex.rotation.y = t * 0.4;
+    vortex.position.y = -5 + Math.sin(t * 1.5) * 0.5;
+
+    particles.rotation.y = t * 0.05;
+    particles.rotation.x = Math.sin(t * 0.1) * 0.05;
+
+    var posAttr = particles.geometry.attributes.position;
+    for(var i=0; i<pCount; i++) {
+      posAttr.array[i*3+1] += 0.02; // rise up
+      if(posAttr.array[i*3+1] > 30) posAttr.array[i*3+1] = -30;
+    }
+    posAttr.needsUpdate = true;
+
+    renderer.render(scene, camera);
+    animId = requestAnimationFrame(animate);
+  }
+  animate();
+
+  window._stopCtaScene = function () {
+    if (animId) { cancelAnimationFrame(animId); animId = null; }
+    window.removeEventListener('resize', onResize);
+    renderer.dispose();
+  };
+})();
+
 // ─── Navigation State ─────────────────────────────────────────────────────────
 var currentPage = 'landing'; // 'landing', 'partners', 'dashboard'
 var isTransitioning = false;
@@ -1483,6 +1600,7 @@ function enterDashboard() {
   if (window._stopBenefitsScene) window._stopBenefitsScene();
   if (window._stopTestimonialsScene) window._stopTestimonialsScene();
   if (window._stopPricingScene) window._stopPricingScene();
+  if (window._stopCtaScene) window._stopCtaScene();
 
   var landing = document.getElementById('landing-page');
   var partners = document.getElementById('partners-page');
@@ -1494,6 +1612,7 @@ function enterDashboard() {
   var benefitspage = document.getElementById('benefits-page');
   var testimonialspage = document.getElementById('testimonials-page');
   var pricingpage = document.getElementById('pricing-page');
+  var ctapage = document.getElementById('cta-page');
   var dashboard = document.getElementById('dashboard-view');
 
   // Hide all pages, show dashboard
@@ -1507,6 +1626,7 @@ function enterDashboard() {
   if (benefitspage) benefitspage.style.display = 'none';
   if (testimonialspage) testimonialspage.style.display = 'none';
   if (pricingpage) pricingpage.style.display = 'none';
+  if (ctapage) ctapage.style.display = 'none';
   if (dashboard) dashboard.style.display = 'block';
 
   // Apply dashboard body class (allows scrolling)
