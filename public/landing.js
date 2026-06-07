@@ -1395,6 +1395,74 @@
   };
 })();
 
+// ─── PRICING PAGE 3D SCENE (11th Page) ───────────────────────────────────────
+(function () {
+  'use strict';
+  var canvas = document.getElementById('pricing-canvas');
+  if (!canvas || typeof THREE === 'undefined') return;
+
+  var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  var scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x050505);
+  scene.fog = new THREE.FogExp2(0x050505, 0.02);
+
+  var camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.set(0, 0, 20);
+
+  // Big wireframe geometry
+  var geo = new THREE.IcosahedronGeometry(12, 1);
+  var mat = new THREE.MeshBasicMaterial({ color: 0x3b82f6, wireframe: true, transparent: true, opacity: 0.15 });
+  var mesh = new THREE.Mesh(geo, mat);
+  scene.add(mesh);
+
+  var geo2 = new THREE.IcosahedronGeometry(15, 2);
+  var mat2 = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.05 });
+  var mesh2 = new THREE.Mesh(geo2, mat2);
+  scene.add(mesh2);
+
+  // Mouse tracking
+  var mx = 0, my = 0;
+  document.addEventListener('mousemove', function (e) {
+    mx = (e.clientX / window.innerWidth - 0.5) * 2;
+    my = (e.clientY / window.innerHeight - 0.5) * 2;
+  });
+
+  function onResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  }
+  window.addEventListener('resize', onResize);
+
+  var animId = null;
+  var t0 = performance.now();
+  function animate() {
+    var t = (performance.now() - t0) * 0.001;
+    camera.position.x += (mx * 3 - camera.position.x) * 0.05;
+    camera.position.y += (-my * 2 - camera.position.y) * 0.05;
+    camera.lookAt(0, 0, 0);
+
+    mesh.rotation.y = t * 0.05;
+    mesh.rotation.x = t * 0.03;
+    
+    mesh2.rotation.y = -t * 0.03;
+    mesh2.rotation.z = t * 0.02;
+
+    renderer.render(scene, camera);
+    animId = requestAnimationFrame(animate);
+  }
+  animate();
+
+  window._stopPricingScene = function () {
+    if (animId) { cancelAnimationFrame(animId); animId = null; }
+    window.removeEventListener('resize', onResize);
+    renderer.dispose();
+  };
+})();
+
 // ─── Navigation State ─────────────────────────────────────────────────────────
 var currentPage = 'landing'; // 'landing', 'partners', 'dashboard'
 var isTransitioning = false;
@@ -1414,6 +1482,7 @@ function enterDashboard() {
   if (window._stopSolutionsScene) window._stopSolutionsScene();
   if (window._stopBenefitsScene) window._stopBenefitsScene();
   if (window._stopTestimonialsScene) window._stopTestimonialsScene();
+  if (window._stopPricingScene) window._stopPricingScene();
 
   var landing = document.getElementById('landing-page');
   var partners = document.getElementById('partners-page');
@@ -1424,6 +1493,7 @@ function enterDashboard() {
   var solutionspage = document.getElementById('solutions-page');
   var benefitspage = document.getElementById('benefits-page');
   var testimonialspage = document.getElementById('testimonials-page');
+  var pricingpage = document.getElementById('pricing-page');
   var dashboard = document.getElementById('dashboard-view');
 
   // Hide all pages, show dashboard
@@ -1436,6 +1506,7 @@ function enterDashboard() {
   if (solutionspage) solutionspage.style.display = 'none';
   if (benefitspage) benefitspage.style.display = 'none';
   if (testimonialspage) testimonialspage.style.display = 'none';
+  if (pricingpage) pricingpage.style.display = 'none';
   if (dashboard) dashboard.style.display = 'block';
 
   // Apply dashboard body class (allows scrolling)
