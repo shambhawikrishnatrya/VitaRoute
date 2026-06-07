@@ -1131,6 +1131,200 @@
   };
 })();
 
+// ─── BENEFITS PAGE 3D SCENE (9th Page) ───────────────────────────────────────
+(function () {
+  'use strict';
+  var canvas = document.getElementById('benefits-canvas');
+  if (!canvas || typeof THREE === 'undefined') return;
+
+  var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.2;
+
+  var scene = new THREE.Scene();
+
+  // Gradient background (orange → red)
+  var bgCanvas = document.createElement('canvas');
+  bgCanvas.width = 4;
+  bgCanvas.height = 512;
+  var bgCtx = bgCanvas.getContext('2d');
+  var grad = bgCtx.createLinearGradient(0, 0, 0, 512);
+  grad.addColorStop(0.0, '#ffc080');
+  grad.addColorStop(0.4, '#ff6030');
+  grad.addColorStop(0.8, '#cc1010');
+  grad.addColorStop(1.0, '#800000');
+  bgCtx.fillStyle = grad;
+  bgCtx.fillRect(0, 0, 4, 512);
+  scene.background = new THREE.CanvasTexture(bgCanvas);
+
+  // Depth fog
+  scene.fog = new THREE.FogExp2(0xff6030, 0.025);
+
+  var camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 120);
+  camera.position.set(0, 0, 18);
+
+  // Lighting
+  scene.add(new THREE.AmbientLight(0xffcccc, 0.6));
+
+  var dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+  dirLight.position.set(6, 10, 12);
+  scene.add(dirLight);
+
+  var warmLight = new THREE.PointLight(0xffaa00, 2.5, 35);
+  warmLight.position.set(-5, 3, 8);
+  scene.add(warmLight);
+
+  var coolLight = new THREE.PointLight(0xff5555, 1.5, 28);
+  coolLight.position.set(5, -2, 5);
+  scene.add(coolLight);
+
+  // Feather geometry helper
+  function makeFeatherGeo() {
+    var w = 0.15 + Math.random() * 0.1;
+    var h = 1.5 + Math.random() * 2.5;
+    return new THREE.PlaneGeometry(w, h, 1, 6);
+  }
+
+  // Color palette (oranges, bright reds)
+  var palette = [
+    0xff3300, 0xff5500, 0xee2200, 0xffaa00,
+    0xff4422, 0xcc1100, 0xff7700, 0xdd3311
+  ];
+
+  function pickColor() {
+    return palette[Math.floor(Math.random() * palette.length)];
+  }
+
+  // Create feather layers (parallax depth groups)
+  var layers = [];
+
+  var layerConfigs = [
+    { count: 40,  zMin: -5,  zMax:  2,  spread: 25, scaleMin: 0.7, scaleMax: 1.6, opacity: 0.95, fogDensity: 0.025 },
+    { count: 50,  zMin: -15, zMax: -5,  spread: 35, scaleMin: 0.5, scaleMax: 1.2, opacity: 0.75, fogDensity: 0.03  },
+    { count: 40,  zMin: -30, zMax: -15, spread: 45, scaleMin: 0.3, scaleMax: 0.9, opacity: 0.45, fogDensity: 0.04  }
+  ];
+
+  var dummy = new THREE.Object3D();
+
+  layerConfigs.forEach(function (cfg) {
+    var geo = makeFeatherGeo();
+    var mat = new THREE.MeshStandardMaterial({
+      color: pickColor(),
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: cfg.opacity,
+      roughness: 0.4,
+      metalness: 0.1,
+      emissive: new THREE.Color(0x331100),
+      emissiveIntensity: 0.2
+    });
+
+    var mesh = new THREE.InstancedMesh(geo, mat, cfg.count);
+    mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+
+    var items = [];
+    for (var i = 0; i < cfg.count; i++) {
+      var x = (Math.random() - 0.5) * cfg.spread;
+      var y = (Math.random() - 0.5) * cfg.spread * 0.65;
+      var z = cfg.zMin + Math.random() * (cfg.zMax - cfg.zMin);
+      var rx = Math.random() * Math.PI;
+      var ry = Math.random() * Math.PI;
+      var rz = Math.random() * Math.PI;
+      var s  = cfg.scaleMin + Math.random() * (cfg.scaleMax - cfg.scaleMin);
+
+      items.push({
+        x: x, y: y, z: z,
+        rx: rx, ry: ry, rz: rz,
+        s: s,
+        rotSpeed:  (Math.random() - 0.5) * 0.15,
+        floatPhase: Math.random() * Math.PI * 2,
+        floatAmp:   0.1 + Math.random() * 0.2
+      });
+
+      // Set initial matrix
+      dummy.position.set(x, y, z);
+      dummy.rotation.set(rx, ry, rz);
+      dummy.scale.setScalar(s);
+      dummy.updateMatrix();
+      mesh.setMatrixAt(i, dummy.matrix);
+    }
+
+    mesh.instanceMatrix.needsUpdate = true;
+    scene.add(mesh);
+    layers.push({ mesh: mesh, items: items, cfg: cfg });
+  });
+
+  // Mouse tracking
+  var mouseX = 0, mouseY = 0;
+  var targetCamX = 0, targetCamY = 0;
+
+  document.addEventListener('mousemove', function (e) {
+    mouseX = (e.clientX / window.innerWidth  - 0.5) * 2;
+    mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+  });
+
+  function onResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  }
+  window.addEventListener('resize', onResize);
+
+  var animId = null;
+  var clock = new THREE.Clock();
+
+  function animate() {
+    animId = requestAnimationFrame(animate);
+    var delta = clock.getDelta();
+    var time  = clock.getElapsedTime();
+
+    // Camera parallax
+    targetCamX = mouseX * 2.0;
+    targetCamY = mouseY * 1.2;
+    camera.position.x += (targetCamX - camera.position.x) * 0.05;
+    camera.position.y += (-targetCamY - camera.position.y) * 0.05;
+    camera.lookAt(0, 0, -10);
+
+    // Dynamic lights
+    warmLight.position.x = Math.sin(time * 0.5) * 6;
+    coolLight.position.y = Math.cos(time * 0.4) * 4 - 2;
+
+    // Animate instances
+    layers.forEach(function (layer) {
+      var items = layer.items;
+      var mesh = layer.mesh;
+      for (var i = 0; i < items.length; i++) {
+        var it = items[i];
+        
+        it.rx += it.rotSpeed * delta;
+        it.ry += it.rotSpeed * delta * 0.8;
+        
+        var dy = Math.sin(time * 1.5 + it.floatPhase) * it.floatAmp;
+
+        dummy.position.set(it.x, it.y + dy, it.z);
+        dummy.rotation.set(it.rx, it.ry, it.rz);
+        dummy.scale.setScalar(it.s);
+        dummy.updateMatrix();
+        mesh.setMatrixAt(i, dummy.matrix);
+      }
+      mesh.instanceMatrix.needsUpdate = true;
+    });
+
+    renderer.render(scene, camera);
+  }
+
+  clock.start();
+  animate();
+
+  window._stopBenefitsScene = function () {
+    if (animId) { cancelAnimationFrame(animId); animId = null; }
+    window.removeEventListener('resize', onResize);
+    renderer.dispose();
+  };
+})();
+
 // ─── Navigation State ─────────────────────────────────────────────────────────
 var currentPage = 'landing'; // 'landing', 'partners', 'dashboard'
 var isTransitioning = false;
@@ -1148,6 +1342,7 @@ function enterDashboard() {
   if (window._stopRouteScene) window._stopRouteScene();
   if (window._stopDispatcherScene) window._stopDispatcherScene();
   if (window._stopSolutionsScene) window._stopSolutionsScene();
+  if (window._stopBenefitsScene) window._stopBenefitsScene();
 
   var landing = document.getElementById('landing-page');
   var partners = document.getElementById('partners-page');
@@ -1156,6 +1351,7 @@ function enterDashboard() {
   var routepage = document.getElementById('route-page');
   var dispatcherpage = document.getElementById('dispatcher-page');
   var solutionspage = document.getElementById('solutions-page');
+  var benefitspage = document.getElementById('benefits-page');
   var dashboard = document.getElementById('dashboard-view');
 
   // Hide all pages, show dashboard
@@ -1166,6 +1362,7 @@ function enterDashboard() {
   if (routepage) routepage.style.display = 'none';
   if (dispatcherpage) dispatcherpage.style.display = 'none';
   if (solutionspage) solutionspage.style.display = 'none';
+  if (benefitspage) benefitspage.style.display = 'none';
   if (dashboard) dashboard.style.display = 'block';
 
   // Apply dashboard body class (allows scrolling)
