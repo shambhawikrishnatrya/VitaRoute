@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>VitaRoute - Checkout</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #0b1120;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .checkout-container {
+      background: #1e293b;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      width: 100%;
+      max-width: 450px;
+      text-align: center;
+    }
+    .checkout-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .checkout-plan {
+      color: #10b981;
+      font-size: 20px;
+      text-transform: capitalize;
+      margin-bottom: 24px;
+    }
+    .input-group {
+      margin-bottom: 16px;
+      text-align: left;
+    }
+    label {
+      display: block;
+      font-size: 14px;
+      color: #94a3b8;
+      margin-bottom: 8px;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: #0f172a;
+      color: #fff;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    .btn-submit {
+      width: 100%;
+      padding: 14px;
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 16px;
+      transition: background 0.2s;
+    }
+    .btn-submit:hover {
+      background: #dc2626;
+    }
+    .btn-back {
+      background: transparent;
+      color: #94a3b8;
+      border: none;
+      margin-top: 16px;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="checkout-container">
+    <h1 class="checkout-title">Complete Your Purchase</h1>
+    <div class="checkout-plan" id="plan-name">Selected Plan: Loading...</div>
+    
+    <div class="input-group">
+      <label>Email Address</label>
+      <input type="email" placeholder="name@agency.com">
+    </div>
+    
+    <div class="input-group">
+      <label>Card Number</label>
+      <input type="text" placeholder="XXXX XXXX XXXX XXXX">
+    </div>
+    
+    <button class="btn-submit" onclick="alert('Payment Successful! Welcome to VitaRoute.')">Subscribe Now</button>
+    <button class="btn-back" onclick="window.location.href='index.html'">Back to Home</button>
+  </div>
+
+  <script>
+    // Get plan from URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const plan = urlParams.get('plan') || 'Custom';
+    document.getElementById('plan-name').innerText = `Plan: ${plan}`;
+  </script>
+</body>
+</html>

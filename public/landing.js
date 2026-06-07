@@ -1501,34 +1501,44 @@
   dirLight.position.set(5, 5, 5);
   scene.add(dirLight);
 
-  // Swirling Organic Vortex geometry
-  var geo = new THREE.TorusKnotGeometry(8, 3, 150, 32);
+  // Sleek geometric wave grid instead of TorusKnot
+  var geo = new THREE.PlaneGeometry(60, 40, 40, 40);
+  geo.rotateX(-Math.PI / 2);
+  
   var mat = new THREE.MeshStandardMaterial({
     color: 0xff3333,
-    roughness: 0.3,
-    metalness: 0.2,
+    roughness: 0.2,
+    metalness: 0.5,
+    wireframe: true,
     transparent: true,
-    opacity: 0.85,
-    wireframe: false,
-    emissive: 0x550000,
-    emissiveIntensity: 0.4
+    opacity: 0.35,
+    emissive: 0xaa0000,
+    emissiveIntensity: 0.8
   });
   
-  var vortex = new THREE.Mesh(geo, mat);
-  vortex.position.set(8, -5, -5); // Position it to the right like in the reference image
-  scene.add(vortex);
+  var waveGrid = new THREE.Mesh(geo, mat);
+  waveGrid.position.set(0, -6, -5);
+  scene.add(waveGrid);
 
-  // Floating particles
+  // Original vertex positions for wave animation
+  var pos = geo.attributes.position;
+  var vCount = pos.count;
+  var origY = new Float32Array(vCount);
+  for(var i=0; i<vCount; i++) {
+    origY[i] = pos.getY(i);
+  }
+
+  // Floating ambient particles
   var pGeo = new THREE.BufferGeometry();
-  var pCount = 400;
+  var pCount = 300;
   var pPos = new Float32Array(pCount * 3);
   for(var i=0; i<pCount; i++) {
-    pPos[i*3] = (Math.random() - 0.5) * 60;
-    pPos[i*3+1] = (Math.random() - 0.5) * 60;
+    pPos[i*3] = (Math.random() - 0.5) * 80;
+    pPos[i*3+1] = (Math.random() - 0.5) * 40;
     pPos[i*3+2] = (Math.random() - 0.5) * 40;
   }
   pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
-  var pMat = new THREE.PointsMaterial({color: 0xffaaaa, size: 0.2, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending});
+  var pMat = new THREE.PointsMaterial({color: 0xffaaaa, size: 0.15, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending});
   var particles = new THREE.Points(pGeo, pMat);
   scene.add(particles);
 
@@ -1550,23 +1560,28 @@
   var t0 = performance.now();
   function animate() {
     var t = (performance.now() - t0) * 0.001;
-    camera.position.x += (mx * 3 - camera.position.x) * 0.05;
-    camera.position.y += (-my * 2 - camera.position.y) * 0.05;
+    camera.position.x += (mx * 2 - camera.position.x) * 0.05;
+    camera.position.y += (-my * 1 - camera.position.y) * 0.05;
     camera.lookAt(0, 0, 0);
 
-    vortex.rotation.x = t * 0.3;
-    vortex.rotation.y = t * 0.4;
-    vortex.position.y = -5 + Math.sin(t * 1.5) * 0.5;
-
-    particles.rotation.y = t * 0.05;
-    particles.rotation.x = Math.sin(t * 0.1) * 0.05;
-
-    var posAttr = particles.geometry.attributes.position;
-    for(var i=0; i<pCount; i++) {
-      posAttr.array[i*3+1] += 0.02; // rise up
-      if(posAttr.array[i*3+1] > 30) posAttr.array[i*3+1] = -30;
+    // Animate wave grid
+    for(var i=0; i<vCount; i++) {
+      var vx = pos.getX(i);
+      var vz = pos.getZ(i);
+      // Create a smooth rolling wave effect
+      var ny = Math.sin(vx * 0.2 + t) * Math.cos(vz * 0.2 + t * 0.8) * 1.5;
+      pos.setY(i, origY[i] + ny);
     }
-    posAttr.needsUpdate = true;
+    pos.needsUpdate = true;
+
+    particles.rotation.y = t * 0.03;
+
+    var pAttr = particles.geometry.attributes.position;
+    for(var i=0; i<pCount; i++) {
+      pAttr.array[i*3+1] += 0.015; // slow rise
+      if(pAttr.array[i*3+1] > 20) pAttr.array[i*3+1] = -20;
+    }
+    pAttr.needsUpdate = true;
 
     renderer.render(scene, camera);
     animId = requestAnimationFrame(animate);
