@@ -1724,7 +1724,7 @@ function proceedToDashboard() {
   }, { threshold: 0.15 });
 
   var pages = [
-    'landing-page', 'partners-page', 'features-page', 'keyfeatures-page', 
+    'landing-page', 'partners-page', 'demo-page', 'features-page', 'keyfeatures-page', 
     'route-page', 'dispatcher-page', 'solutions-page', 'benefits-page', 
     'testimonials-page', 'pricing-page', 'cta-page'
   ];
@@ -1735,6 +1735,108 @@ function proceedToDashboard() {
       el.classList.add('scroll-3d-section');
       observer.observe(el);
     }
+  });
+})();
+
+// ─── LIVE INTERACTIVE MAP DEMO ───────────────────────────────────────────────
+(function() {
+  var mapEl = document.getElementById('demo-live-map');
+  if (!mapEl || typeof L === 'undefined') return;
+
+  var demoMap = L.map('demo-live-map', {
+    zoomControl: false,
+    scrollWheelZoom: false,
+    attributionControl: false
+  }).setView([28.6139, 77.2090], 12);
+
+  L.control.zoom({ position: 'topright' }).addTo(demoMap);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    maxZoom: 20, subdomains: 'abcd'
+  }).addTo(demoMap);
+
+  var ambIcon = L.divIcon({
+    className: 'demo-amb-marker',
+    html: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>',
+    iconSize: [32, 32], iconAnchor: [16, 16]
+  });
+
+  var emgIcon = L.divIcon({
+    className: 'demo-emg-marker', html: '', iconSize: [16, 16], iconAnchor: [8, 8]
+  });
+
+  var ambulances = [
+    { id: 1, pos: [28.6315, 77.2167], marker: L.marker([28.6315, 77.2167], {icon: ambIcon}).addTo(demoMap) },
+    { id: 2, pos: [28.5660, 77.2066], marker: L.marker([28.5660, 77.2066], {icon: ambIcon}).addTo(demoMap) },
+    { id: 3, pos: [28.5246, 77.2066], marker: L.marker([28.5246, 77.2066], {icon: ambIcon}).addTo(demoMap) }
+  ];
+
+  var currentEmgMarker = null;
+  var currentRouteLine = null;
+  var isDispatching = false;
+  var statusEl = document.getElementById('demo-hud-status');
+  var etaEl = document.getElementById('demo-hud-eta');
+  var distEl = document.getElementById('demo-hud-dist');
+
+  demoMap.on('click', function(e) {
+    if (isDispatching) return;
+    var dest = [e.latlng.lat, e.latlng.lng];
+    if (currentEmgMarker) demoMap.removeLayer(currentEmgMarker);
+    if (currentRouteLine) demoMap.removeLayer(currentRouteLine);
+
+    currentEmgMarker = L.marker(dest, {icon: emgIcon}).addTo(demoMap);
+    statusEl.innerText = "Finding nearest ambulance...";
+    statusEl.style.color = "#f59e0b";
+
+    setTimeout(function() {
+      var nearest = null, minDist = Infinity;
+      ambulances.forEach(function(a) {
+        var d = demoMap.distance(a.pos, dest);
+        if (d < minDist) { minDist = d; nearest = a; }
+      });
+
+      statusEl.innerText = "Dispatching Unit " + nearest.id + "...";
+      statusEl.style.color = "#3b82f6";
+
+      var routeCoords = [ nearest.pos, [nearest.pos[0] + (dest[0]-nearest.pos[0])*0.5, nearest.pos[1]], dest ];
+      currentRouteLine = L.polyline(routeCoords, { color: '#10b981', weight: 4, opacity: 0.8, dashArray: '10, 10' }).addTo(demoMap);
+      demoMap.fitBounds(currentRouteLine.getBounds(), {padding: [50, 50]});
+
+      distEl.innerText = (minDist / 1000).toFixed(1) + " km";
+      etaEl.innerText = Math.max(1, Math.round(minDist / 500)) + " mins";
+      isDispatching = true;
+
+      var step = 0, totalSteps = 60;
+      var interval = setInterval(function() {
+        step++;
+        var progress = step / totalSteps;
+        var currentLat, currentLng;
+        if (progress < 0.5) {
+          var p2 = progress * 2;
+          currentLat = routeCoords[0][0] + (routeCoords[1][0] - routeCoords[0][0]) * p2;
+          currentLng = routeCoords[0][1] + (routeCoords[1][1] - routeCoords[0][1]) * p2;
+        } else {
+          var p2 = (progress - 0.5) * 2;
+          currentLat = routeCoords[1][0] + (routeCoords[2][0] - routeCoords[1][0]) * p2;
+          currentLng = routeCoords[1][1] + (routeCoords[2][1] - routeCoords[1][1]) * p2;
+        }
+
+        nearest.marker.setLatLng([currentLat, currentLng]);
+        nearest.pos = [currentLat, currentLng];
+
+        if (step >= totalSteps) {
+          clearInterval(interval);
+          isDispatching = false;
+          statusEl.innerText = "Arrived at destination.";
+          statusEl.style.color = "#10b981";
+          demoMap.removeLayer(currentEmgMarker);
+          demoMap.removeLayer(currentRouteLine);
+          currentEmgMarker = null;
+          currentRouteLine = null;
+          distEl.innerText = "--";
+          etaEl.innerText = "--";
+        }
+      }, 50);
+    }, 600);
   });
 })();
 

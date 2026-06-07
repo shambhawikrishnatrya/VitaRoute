@@ -9,38 +9,129 @@ let hospitals = {};
 let mapInitialized = false;
 let pendingInitData = null;
 
-// ─── Leaflet Map ──────────────────────────────────────────────────────────────
-let map = null;
-let routePolylines = [];
+// Fallback for Vercel static deployments
+setTimeout(() => {
+  if (!graph && !pendingInitData) {
+    console.log("WebSocket connection failed. Falling back to Live Interactive Map Demo mode.");
+    
+    // Create custom SVG icons
+    const ambIcon = L.divIcon({
+      className: 'demo-amb-marker',
+      html: '<div style="background:#3b82f6;border-radius:50%;color:#fff;display:flex;justify-content:center;align-items:center;box-shadow:0 0 10px #3b82f6, 0 0 20px #3b82f6;width:28px;height:28px;">A</div>',
+      iconSize: [28, 28], iconAnchor: [14, 14]
+    });
+    const emgIcon = L.divIcon({
+      className: 'demo-emg-marker',
+      html: '<div style="background:#ef4444;border-radius:50%;border:2px solid #fff;box-shadow:0 0 15px #ef4444;width:14px;height:14px;animation:pulse 1.5s infinite;"></div>',
+      iconSize: [14, 14], iconAnchor: [7, 7]
+    });
 
-function reinitMap() {
-  if (mapInitialized || !pendingInitData) return;
-  initMap(pendingInitData.graph);
-  renderAll();
-  mapInitialized = true;
-  pendingInitData = null;
-}
+    const mockData = {
+      graph: { nodes: { M1: { lat: 28.6139, lng: 77.2090 } }, edges: [] },
+      ambulances: {
+        "RESCUE-101": { id: "RESCUE-101", lat: 28.6315, lng: 77.2167, status: "IDLE" },
+        "RESCUE-102": { id: "RESCUE-102", lat: 28.5660, lng: 77.2066, status: "IDLE" },
+        "RESCUE-103": { id: "RESCUE-103", lat: 28.5246, lng: 77.2066, status: "IDLE" }
+      },
+      incidents: [], hospitals: {}, notifications: []
+    };
 
-window.resizeMap = function() {
-  if (map) map.invalidateSize();
-};
+    ambulances = mockData.ambulances;
+    incidents = mockData.incidents;
+    hospitals = mockData.hospitals;
 
-function initMap(initialGraph) {
-  graph = initialGraph;
-  const el = document.getElementById('vr-map');
-  if (!el) return;
+    const dashboardView = document.getElementById('dashboard-view');
+    if (dashboardView && dashboardView.style.display !== 'none') {
+      graph = mockData.graph;
+      initMap(mockData.graph);
+      renderAll();
+      mapInitialized = true;
+      setupInteractiveDemo(map, ambIcon, emgIcon);
+    } else {
+      pendingInitData = mockData;
+      // We also need to setup the interactive demo when the map finally initializes
+      const originalReinit = window.reinitMap;
+      window.reinitMap = function() {
+        if (originalReinit) originalReinit();
+        setupInteractiveDemo(map, ambIcon, emgIcon);
+      };
+    }
+  }
+}, 2000);
 
-  map = L.map('vr-map', {
-    zoomControl: false,
-    attributionControl: false
-  }).setView([28.6139, 77.2090], 12);
+function setupInteractiveDemo(demoMap, ambIcon, emgIcon) {
+  if (!demoMap) return;
+  console.log("Setting up Live Interactive Routing Demo...");
+  
+  // Clear the static render logic for these mock ambulances and replace with our interactive ones
+  Object.keys(ambulances).forEach(id => {
+    ambulances[id].marker = L.marker([ambulances[id].lat, ambulances[id].lng], {icon: ambIcon}).addTo(demoMap);
+  });
 
-  L.control.zoom({ position: 'topright' }).addTo(map);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    maxZoom: 20, subdomains: 'abcd'
-  }).addTo(map);
+  let currentEmgMarker = null;
+  let currentRouteLine = null;
+  let isDispatching = false;
 
-  renderMapMarkers();
+  demoMap.on('click', function(e) {
+    if (isDispatching) return;
+    const dest = [e.latlng.lat, e.latlng.lng];
+    if (currentEmgMarker) demoMap.removeLayer(currentEmgMarker);
+    if (currentRouteLine) demoMap.removeLayer(currentRouteLine);
+
+    currentEmgMarker = L.marker(dest, {icon: emgIcon}).addTo(demoMap);
+    
+    // Display an alert instead of HUD
+    const alertList = document.getElementById('vr-alerts-list');
+    if (alertList) {
+      alertList.innerHTML = `<div class="vr-alert-item"><div class="vr-alert-icon">⚠</div><div><div class="vr-alert-text">Incident Reported!</div><div class="vr-alert-loc">Finding nearest unit...</div></div></div>` + alertList.innerHTML;
+    }
+
+    setTimeout(function() {
+      let nearest = null, minDist = Infinity;
+      Object.values(ambulances).forEach(a => {
+        const d = demoMap.distance([a.lat, a.lng], dest);
+        if (d < minDist) { minDist = d; nearest = a; }
+      });
+
+      const routeCoords = [ [nearest.lat, nearest.lng], [nearest.lat + (dest[0]-nearest.lat)*0.5, nearest.lng], dest ];
+      currentRouteLine = L.polyline(routeCoords, { color: '#10b981', weight: 4, opacity: 0.8, dashArray: '10, 10' }).addTo(demoMap);
+      
+      const distKm = (minDist / 1000).toFixed(1);
+      if (alertList) {
+        alertList.innerHTML = `<div class="vr-alert-item"><div class="vr-alert-icon">🚑</div><div><div class="vr-alert-text">Dispatching ${nearest.id}</div><div class="vr-alert-loc">Distance: ${distKm} km</div></div></div>` + alertList.innerHTML;
+      }
+
+      isDispatching = true;
+      let step = 0, totalSteps = 60;
+      const interval = setInterval(function() {
+        step++;
+        const progress = step / totalSteps;
+        let currentLat, currentLng;
+        if (progress < 0.5) {
+          const p2 = progress * 2;
+          currentLat = routeCoords[0][0] + (routeCoords[1][0] - routeCoords[0][0]) * p2;
+          currentLng = routeCoords[0][1] + (routeCoords[1][1] - routeCoords[0][1]) * p2;
+        } else {
+          const p2 = (progress - 0.5) * 2;
+          currentLat = routeCoords[1][0] + (routeCoords[2][0] - routeCoords[1][0]) * p2;
+          currentLng = routeCoords[1][1] + (routeCoords[2][1] - routeCoords[1][1]) * p2;
+        }
+
+        nearest.marker.setLatLng([currentLat, currentLng]);
+        nearest.lat = currentLat;
+        nearest.lng = currentLng;
+
+        if (step >= totalSteps) {
+          clearInterval(interval);
+          isDispatching = false;
+          if (currentEmgMarker) demoMap.removeLayer(currentEmgMarker);
+          if (currentRouteLine) demoMap.removeLayer(currentRouteLine);
+          currentEmgMarker = null;
+          currentRouteLine = null;
+        }
+      }, 50);
+    }, 600);
+  });
 }
 
 // ─── Haversine Distance ───────────────────────────────────────────────────────

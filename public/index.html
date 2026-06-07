@@ -218,6 +218,55 @@
     </section>
   </div>
 
+  <!-- ========================================
+       LIVE DEMO PAGE
+       ======================================== -->
+  <div id="demo-page">
+    <nav class="lp-navbar demo-nav">
+      <div class="lp-navbar-inner">
+        <div class="lp-logo" style="cursor: pointer;" onclick="window.location.reload()">VitaRoute</div>
+        <div class="lp-nav-group">
+          <a href="#keyfeatures-page" class="lp-nav-link">Features</a>
+          <a href="#solutions-page" class="lp-nav-link">Solutions</a>
+          <a href="#pricing-page" class="lp-nav-link">Pricing</a>
+          <button class="lp-btn-primary" onclick="enterDashboard()">
+            Get Free Access
+            <span class="lp-btn-arrow">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                <path d="M1 5H9M9 5L5 1M9 5L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <section class="demo-section">
+      <div class="demo-container">
+        <div class="demo-header">
+          <span class="demo-label" style="display:inline-block;padding:6px 12px;background:rgba(59,130,246,0.1);color:#3b82f6;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:1px;margin-bottom:16px;">INTERACTIVE PREVIEW</span>
+          <h2 class="demo-title">Live Interactive Map Demo</h2>
+          <p class="demo-subtitle">Click anywhere on the map to dispatch the nearest AI-routed ambulance in real-time.</p>
+        </div>
+        <div class="demo-map-wrapper">
+          <div id="demo-live-map"></div>
+          <div class="demo-overlay-hud">
+            <div class="demo-hud-row">
+              <span>Status:</span>
+              <span id="demo-hud-status" style="color: #3b82f6;">Awaiting Incident</span>
+            </div>
+            <div class="demo-hud-row">
+              <span>ETA:</span>
+              <span id="demo-hud-eta">--</span>
+            </div>
+            <div class="demo-hud-row">
+              <span>Distance:</span>
+              <span id="demo-hud-dist">--</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 
   <!-- ========================================
