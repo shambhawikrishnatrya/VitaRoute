@@ -1705,7 +1705,7 @@ function proceedToDashboard() {
     setTimeout(function() {
       reinitMap();
       setTimeout(function() {
-        if (typeof map !== 'undefined' && map) map.invalidateSize();
+        if (typeof window.resizeMap === 'function') window.resizeMap();
       }, 200);
     }, 100);
   }

@@ -21,6 +21,10 @@ function reinitMap() {
   pendingInitData = null;
 }
 
+window.resizeMap = function() {
+  if (map) map.invalidateSize();
+};
+
 function initMap(initialGraph) {
   graph = initialGraph;
   const el = document.getElementById('vr-map');
