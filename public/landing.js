@@ -573,6 +573,365 @@
   };
 })();
 
+// ─── KEY FEATURES PAGE 3D SCENE ────────────────────────────────────────────────
+(function () {
+  'use strict';
+  var canvas = document.getElementById('keyfeatures-canvas');
+  if (!canvas || typeof THREE === 'undefined') return;
+
+  var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 0.7;
+
+  var scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x080d18);
+  scene.fog = new THREE.FogExp2(0x080d18, 0.04);
+
+  var camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.set(0, 1, 14);
+
+  // Lighting
+  scene.add(new THREE.AmbientLight(0x0a1a2a, 0.35));
+
+  var cyanLight = new THREE.PointLight(0x00f0ff, 2.8, 28);
+  cyanLight.position.set(-4, 4, 8);
+  scene.add(cyanLight);
+
+  var orangeLight = new THREE.PointLight(0xff6b35, 2.0, 22);
+  orangeLight.position.set(6, 2, 6);
+  scene.add(orangeLight);
+
+  var tealLight = new THREE.PointLight(0x00ff9d, 1.4, 20);
+  tealLight.position.set(0, -3, 10);
+  scene.add(tealLight);
+
+  // Data stream particles
+  var count = 100;
+  var geo = new THREE.BufferGeometry();
+  var pos = new Float32Array(count * 3);
+  var vel = [];
+  for (var i = 0; i < count; i++) {
+    pos[i*3]   = (Math.random()-0.5) * 30;
+    pos[i*3+1] = (Math.random()-0.5) * 20;
+    pos[i*3+2] = (Math.random()-0.5) * 20 - 5;
+    vel.push({ x: (Math.random()-0.5)*0.01, y: (Math.random()-0.5)*0.008, z: (Math.random()-0.5)*0.005 });
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  var mat = new THREE.PointsMaterial({
+    color: 0x00f0ff, size: 0.07, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending
+  });
+  var pts = new THREE.Points(geo, mat);
+  scene.add(pts);
+
+  // Orange accent particles
+  var geo2 = new THREE.BufferGeometry();
+  var pos2 = new Float32Array(40 * 3);
+  for (var k = 0; k < 40; k++) {
+    pos2[k*3]   = (Math.random()-0.5) * 25;
+    pos2[k*3+1] = (Math.random()-0.5) * 18;
+    pos2[k*3+2] = (Math.random()-0.5) * 15 - 3;
+  }
+  geo2.setAttribute('position', new THREE.BufferAttribute(pos2, 3));
+  var mat2 = new THREE.PointsMaterial({
+    color: 0xff6b35, size: 0.06, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending
+  });
+  var pts2 = new THREE.Points(geo2, mat2);
+  scene.add(pts2);
+
+  // Network lines
+  var lineMat = new THREE.LineBasicMaterial({ color: 0x00f0ff, transparent: true, opacity: 0.12 });
+  for (var j = 0; j < 20; j++) {
+    var lgeo = new THREE.BufferGeometry();
+    var lp = new Float32Array(6);
+    lp[0] = (Math.random()-0.5) * 25;
+    lp[1] = (Math.random()-0.5) * 15;
+    lp[2] = (Math.random()-0.5) * 15 - 3;
+    lp[3] = lp[0] + (Math.random()-0.5) * 12;
+    lp[4] = lp[1] + (Math.random()-0.5) * 10;
+    lp[5] = lp[2] + (Math.random()-0.5) * 5;
+    lgeo.setAttribute('position', new THREE.BufferAttribute(lp, 3));
+    scene.add(new THREE.Line(lgeo, lineMat));
+  }
+
+  // Mouse
+  var mx = 0, my = 0;
+  document.addEventListener('mousemove', function (e) {
+    mx = (e.clientX / window.innerWidth - 0.5) * 2;
+    my = (e.clientY / window.innerHeight - 0.5) * 2;
+  });
+
+  function onResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  }
+  window.addEventListener('resize', onResize);
+
+  var animId = null;
+  var t0 = performance.now();
+  function animate() {
+    var t = (performance.now() - t0) * 0.001;
+    camera.position.x += (mx * 2 - camera.position.x) * 0.025;
+    camera.position.y += (-my * 1.5 + 1 - camera.position.y) * 0.025;
+    camera.lookAt(0, 0, -5);
+
+    // Drift particles
+    var p = pts.geometry.attributes.position.array;
+    for (var i = 0; i < count; i++) {
+      p[i*3]   += vel[i].x;
+      p[i*3+1] += vel[i].y + Math.sin(t*0.4+i)*0.002;
+      p[i*3+2] += vel[i].z;
+    }
+    pts.geometry.attributes.position.needsUpdate = true;
+    pts.rotation.y = t * 0.015;
+    pts2.rotation.y = -t * 0.01;
+
+    cyanLight.position.x = -4 + Math.sin(t*0.3) * 3;
+    orangeLight.position.z = 6 + Math.cos(t*0.2) * 3;
+    tealLight.intensity = 1.4 + Math.sin(t*0.5) * 0.5;
+
+    renderer.render(scene, camera);
+    animId = requestAnimationFrame(animate);
+  }
+  animate();
+
+  window._stopKeyFeaturesScene = function () {
+    if (animId) { cancelAnimationFrame(animId); animId = null; }
+    window.removeEventListener('resize', onResize);
+    renderer.dispose();
+  };
+})();
+
+// ─── ROUTE PAGE 3D SCENE (Feature 2) ─────────────────────────────────────────
+(function () {
+  'use strict';
+  var canvas = document.getElementById('route-canvas');
+  if (!canvas || typeof THREE === 'undefined') return;
+
+  var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 0.65;
+
+  var scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x080d18);
+  scene.fog = new THREE.FogExp2(0x080d18, 0.038);
+
+  var camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.set(0, 1, 14);
+
+  // Lighting
+  scene.add(new THREE.AmbientLight(0x0a1a2a, 0.3));
+
+  var greenLight = new THREE.PointLight(0x00ff9d, 2.5, 25);
+  greenLight.position.set(-5, 3, 8);
+  scene.add(greenLight);
+
+  var redLight = new THREE.PointLight(0xff4757, 1.8, 20);
+  redLight.position.set(5, 4, 6);
+  scene.add(redLight);
+
+  var blueLight = new THREE.PointLight(0x00b4ff, 1.6, 22);
+  blueLight.position.set(0, -2, 10);
+  scene.add(blueLight);
+
+  // Route-colored particles
+  var count = 90;
+  var geo = new THREE.BufferGeometry();
+  var pos = new Float32Array(count * 3);
+  for (var i = 0; i < count; i++) {
+    pos[i*3]   = (Math.random()-0.5) * 30;
+    pos[i*3+1] = (Math.random()-0.5) * 20;
+    pos[i*3+2] = (Math.random()-0.5) * 18 - 4;
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  var mat = new THREE.PointsMaterial({
+    color: 0x00ff9d, size: 0.06, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending
+  });
+  var pts = new THREE.Points(geo, mat);
+  scene.add(pts);
+
+  // Red traffic particles (fewer, brighter)
+  var geo2 = new THREE.BufferGeometry();
+  var pos2 = new Float32Array(35 * 3);
+  for (var k = 0; k < 35; k++) {
+    pos2[k*3]   = (Math.random()-0.5) * 25;
+    pos2[k*3+1] = (Math.random()-0.5) * 16;
+    pos2[k*3+2] = (Math.random()-0.5) * 12 - 3;
+  }
+  geo2.setAttribute('position', new THREE.BufferAttribute(pos2, 3));
+  var mat2 = new THREE.PointsMaterial({
+    color: 0xff4757, size: 0.05, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending
+  });
+  var pts2 = new THREE.Points(geo2, mat2);
+  scene.add(pts2);
+
+  // Route flow lines
+  var routeMat = new THREE.LineBasicMaterial({ color: 0x00ff9d, transparent: true, opacity: 0.15 });
+  for (var j = 0; j < 12; j++) {
+    var lgeo = new THREE.BufferGeometry();
+    var lp = new Float32Array(6);
+    lp[0] = (Math.random()-0.5) * 20 - 5;
+    lp[1] = (Math.random()-0.5) * 14;
+    lp[2] = (Math.random()-0.5) * 12 - 4;
+    lp[3] = lp[0] + Math.random() * 15;
+    lp[4] = lp[1] + (Math.random()-0.5) * 8;
+    lp[5] = lp[2] + (Math.random()-0.5) * 4;
+    lgeo.setAttribute('position', new THREE.BufferAttribute(lp, 3));
+    scene.add(new THREE.Line(lgeo, routeMat));
+  }
+
+  // Mouse
+  var mx = 0, my = 0;
+  document.addEventListener('mousemove', function (e) {
+    mx = (e.clientX / window.innerWidth - 0.5) * 2;
+    my = (e.clientY / window.innerHeight - 0.5) * 2;
+  });
+
+  function onResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  }
+  window.addEventListener('resize', onResize);
+
+  var animId = null;
+  var t0 = performance.now();
+  function animate() {
+    var t = (performance.now() - t0) * 0.001;
+    camera.position.x += (mx * 2 - camera.position.x) * 0.025;
+    camera.position.y += (-my * 1.5 + 1 - camera.position.y) * 0.025;
+    camera.lookAt(0, 0, -5);
+
+    pts.rotation.y = t * 0.018;
+    pts.rotation.x = Math.sin(t * 0.1) * 0.02;
+    pts2.rotation.y = -t * 0.012;
+
+    greenLight.position.x = -5 + Math.sin(t * 0.35) * 3;
+    redLight.position.z = 6 + Math.cos(t * 0.25) * 3;
+    blueLight.intensity = 1.6 + Math.sin(t * 0.5) * 0.4;
+
+    renderer.render(scene, camera);
+    animId = requestAnimationFrame(animate);
+  }
+  animate();
+
+  window._stopRouteScene = function () {
+    if (animId) { cancelAnimationFrame(animId); animId = null; }
+    window.removeEventListener('resize', onResize);
+    renderer.dispose();
+  };
+})();
+
+// ─── DISPATCHER PAGE 3D SCENE (Feature 3) ──────────────────────────────────
+(function () {
+  'use strict';
+  var canvas = document.getElementById('dispatcher-canvas');
+  if (!canvas || typeof THREE === 'undefined') return;
+
+  var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 0.7;
+
+  var scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0a0e17);
+  scene.fog = new THREE.FogExp2(0x0a0e17, 0.035);
+
+  var camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.set(0, 1, 14);
+
+  // Lighting
+  scene.add(new THREE.AmbientLight(0x0a1a2a, 0.4));
+
+  var cyanLight = new THREE.PointLight(0x00f0ff, 2.5, 25);
+  cyanLight.position.set(-5, 4, 8);
+  scene.add(cyanLight);
+
+  var orangeLight = new THREE.PointLight(0xff6b35, 1.8, 20);
+  orangeLight.position.set(5, 2, 6);
+  scene.add(orangeLight);
+
+  var purpleLight = new THREE.PointLight(0x7b61ff, 1.6, 22);
+  purpleLight.position.set(0, -3, 10);
+  scene.add(purpleLight);
+
+  // Particles
+  var count = 100;
+  var geo = new THREE.BufferGeometry();
+  var pos = new Float32Array(count * 3);
+  for (var i = 0; i < count; i++) {
+    pos[i*3]   = (Math.random()-0.5) * 35;
+    pos[i*3+1] = (Math.random()-0.5) * 25;
+    pos[i*3+2] = (Math.random()-0.5) * 20 - 5;
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  var mat = new THREE.PointsMaterial({
+    color: 0x00f0ff, size: 0.05, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending
+  });
+  var pts = new THREE.Points(geo, mat);
+  scene.add(pts);
+
+  // Network lines
+  var lineMat = new THREE.LineBasicMaterial({ color: 0x7b61ff, transparent: true, opacity: 0.15 });
+  for (var j = 0; j < 15; j++) {
+    var lgeo = new THREE.BufferGeometry();
+    var lp = new Float32Array(6);
+    lp[0] = (Math.random()-0.5) * 25 - 5;
+    lp[1] = (Math.random()-0.5) * 15;
+    lp[2] = (Math.random()-0.5) * 12 - 4;
+    lp[3] = lp[0] + Math.random() * 12;
+    lp[4] = lp[1] + (Math.random()-0.5) * 10;
+    lp[5] = lp[2] + (Math.random()-0.5) * 6;
+    lgeo.setAttribute('position', new THREE.BufferAttribute(lp, 3));
+    scene.add(new THREE.Line(lgeo, lineMat));
+  }
+
+  // Mouse
+  var mx = 0, my = 0;
+  document.addEventListener('mousemove', function (e) {
+    mx = (e.clientX / window.innerWidth - 0.5) * 2;
+    my = (e.clientY / window.innerHeight - 0.5) * 2;
+  });
+
+  function onResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  }
+  window.addEventListener('resize', onResize);
+
+  var animId = null;
+  var t0 = performance.now();
+  function animate() {
+    var t = (performance.now() - t0) * 0.001;
+    camera.position.x += (mx * 2 - camera.position.x) * 0.025;
+    camera.position.y += (-my * 1.5 + 1 - camera.position.y) * 0.025;
+    camera.lookAt(0, 0, -5);
+
+    pts.rotation.y = t * 0.012;
+    pts.rotation.x = Math.sin(t * 0.1) * 0.015;
+
+    cyanLight.position.x = -5 + Math.sin(t * 0.3) * 3;
+    orangeLight.position.z = 6 + Math.cos(t * 0.2) * 3;
+    purpleLight.intensity = 1.4 + Math.sin(t * 0.4) * 0.4;
+
+    renderer.render(scene, camera);
+    animId = requestAnimationFrame(animate);
+  }
+  animate();
+
+  window._stopDispatcherScene = function () {
+    if (animId) { cancelAnimationFrame(animId); animId = null; }
+    window.removeEventListener('resize', onResize);
+    renderer.dispose();
+  };
+})();
+
 // ─── Navigation State ─────────────────────────────────────────────────────────
 var currentPage = 'landing'; // 'landing', 'partners', 'dashboard'
 var isTransitioning = false;
@@ -586,16 +945,25 @@ function enterDashboard() {
   if (window._stopLandingScene) window._stopLandingScene();
   if (window._stopPartnersScene) window._stopPartnersScene();
   if (window._stopFeaturesScene) window._stopFeaturesScene();
+  if (window._stopKeyFeaturesScene) window._stopKeyFeaturesScene();
+  if (window._stopRouteScene) window._stopRouteScene();
+  if (window._stopDispatcherScene) window._stopDispatcherScene();
 
   var landing = document.getElementById('landing-page');
   var partners = document.getElementById('partners-page');
   var features = document.getElementById('features-page');
+  var keyfeatures = document.getElementById('keyfeatures-page');
+  var routepage = document.getElementById('route-page');
+  var dispatcherpage = document.getElementById('dispatcher-page');
   var dashboard = document.getElementById('dashboard-view');
 
-  // Hide landing, partners, and features, show dashboard
+  // Hide all pages, show dashboard
   if (landing) landing.style.display = 'none';
   if (partners) partners.style.display = 'none';
   if (features) features.style.display = 'none';
+  if (keyfeatures) keyfeatures.style.display = 'none';
+  if (routepage) routepage.style.display = 'none';
+  if (dispatcherpage) dispatcherpage.style.display = 'none';
   if (dashboard) dashboard.style.display = 'block';
 
   // Apply dashboard body class (allows scrolling)

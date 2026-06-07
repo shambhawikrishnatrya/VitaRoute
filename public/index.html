@@ -405,6 +405,385 @@
   </div>
 
   <!-- ========================================
+       FIFTH PAGE: Key Features / About Section
+       ======================================== -->
+  <div id="keyfeatures-page">
+    <canvas id="keyfeatures-canvas"></canvas>
+
+    <!-- Navbar -->
+    <nav class="lp-navbar kf-nav">
+      <div class="lp-navbar-inner">
+        <div class="lp-logo">VitaRoute</div>
+        <div class="lp-nav-group">
+          <a href="#features" class="lp-nav-link">Features</a>
+          <a href="#solutions" class="lp-nav-link">Solutions</a>
+          <a href="#pricing" class="lp-nav-link">Pricing</a>
+          <button class="lp-btn-primary" onclick="enterDashboard()">
+            Get Free Access
+            <span class="lp-btn-arrow">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                <path d="M1 5H9M9 5L5 1M9 5L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Key Features Content -->
+    <section class="kf-section">
+      <div class="kf-container">
+        <!-- Header Area -->
+        <div class="kf-header">
+          <span class="kf-label">ABOUT VITAROUTE</span>
+          <div class="kf-header-right">
+            <h2 class="kf-headline">Key Features</h2>
+            <p class="kf-subtext">VitaRoute is dedicated to saving lives by delivering faster ambulance response through real-time intelligence and seamless hospital integration.</p>
+          </div>
+        </div>
+
+        <!-- Main Content: Two Columns -->
+        <div class="kf-content">
+          <!-- Left Column: Feature Card -->
+          <div class="kf-feature-card">
+            <span class="kf-feature-label">FEATURE 1</span>
+            <h3 class="kf-feature-title">Real-time GPS Tracking</h3>
+            <p class="kf-feature-desc">Continuous live location, speed, and status updates of every ambulance, giving dispatchers complete visibility and control.</p>
+            <button class="kf-cta-btn" onclick="enterDashboard()">
+              Get Free Access
+              <span class="lp-btn-arrow">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                  <path d="M1 5H9M9 5L5 1M9 5L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
+            </button>
+          </div>
+
+          <!-- Right Column: 3D Map Visualization -->
+          <div class="kf-map-wrapper">
+            <div class="kf-map-3d">
+              <!-- Map Grid Background -->
+              <div class="kf-map-bg"></div>
+
+              <!-- Status Bar -->
+              <div class="kf-status-bar">
+                <div class="kf-status-item">
+                  <span class="kf-status-dot" style="background:#ff6b35"></span>
+                  <span>At Scene</span>
+                  <strong>4</strong>
+                </div>
+                <div class="kf-status-item">
+                  <span class="kf-status-dot" style="background:#00f0ff"></span>
+                  <span>Returning</span>
+                  <strong>3</strong>
+                </div>
+                <div class="kf-status-item">
+                  <span class="kf-status-dot" style="background:#666"></span>
+                  <span>Offline</span>
+                  <strong>0</strong>
+                </div>
+              </div>
+
+              <!-- District Labels -->
+              <div class="kf-district d-north">NORTHWOOD</div>
+              <div class="kf-district d-river">RIVERSIDE</div>
+              <div class="kf-district d-downtown">DOWNTOWN</div>
+              <div class="kf-district d-lake">LAKEVIEW</div>
+              <div class="kf-district d-oak">OAK HILL</div>
+
+              <!-- Ambulance Markers -->
+              <div class="kf-amb-marker am-1">
+                <div class="kf-amb-pin"></div>
+                <div class="kf-amb-info">
+                  <span class="kf-amb-id">AMB-101</span>
+                  <span class="kf-amb-speed">62 mph</span>
+                </div>
+              </div>
+              <div class="kf-amb-marker am-2">
+                <div class="kf-amb-pin"></div>
+                <div class="kf-amb-info">
+                  <span class="kf-amb-id">AMB-102</span>
+                  <span class="kf-amb-speed">48 mph</span>
+                </div>
+              </div>
+              <div class="kf-amb-marker am-3">
+                <div class="kf-amb-pin"></div>
+                <div class="kf-amb-info">
+                  <span class="kf-amb-id">AMB-103</span>
+                  <span class="kf-amb-speed">71 mph</span>
+                </div>
+              </div>
+              <div class="kf-amb-marker am-4">
+                <div class="kf-amb-pin"></div>
+                <div class="kf-amb-info">
+                  <span class="kf-amb-id">AMB-104</span>
+                  <span class="kf-amb-speed">55 mph</span>
+                </div>
+              </div>
+              <div class="kf-amb-marker am-5">
+                <div class="kf-amb-pin"></div>
+                <div class="kf-amb-info">
+                  <span class="kf-amb-id">AMB-105</span>
+                  <span class="kf-amb-speed">39 mph</span>
+                </div>
+              </div>
+
+              <!-- Route Lines -->
+              <svg class="kf-route-lines" viewBox="0 0 500 320" fill="none">
+                <path d="M80,60 C140,80 180,120 250,140 C320,160 380,180 440,200" stroke="#00f0ff" stroke-width="2" stroke-dasharray="6 4" opacity="0.5"/>
+                <path d="M120,240 C180,200 220,180 280,160 C340,140 400,100 460,80" stroke="#ff6b35" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.4"/>
+                <path d="M60,180 C120,160 200,140 280,130 C360,120 420,110 480,100" stroke="#00ff9d" stroke-width="1" stroke-dasharray="3 3" opacity="0.3"/>
+              </svg>
+
+              <!-- Glow Overlay -->
+              <div class="kf-map-glow"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ========================================
+       SIXTH PAGE: Dynamic Route Optimization (Feature 2)
+       ======================================== -->
+  <div id="route-page">
+    <canvas id="route-canvas"></canvas>
+
+    <!-- Navbar -->
+    <nav class="lp-navbar rp-nav">
+      <div class="lp-navbar-inner">
+        <div class="lp-logo">VitaRoute</div>
+        <div class="lp-nav-group">
+          <a href="#features" class="lp-nav-link">Features</a>
+          <a href="#solutions" class="lp-nav-link">Solutions</a>
+          <a href="#pricing" class="lp-nav-link">Pricing</a>
+          <button class="lp-btn-primary" onclick="enterDashboard()">
+            Get Free Access
+            <span class="lp-btn-arrow">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                <path d="M1 5H9M9 5L5 1M9 5L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Route Page Content -->
+    <section class="rp-section">
+      <div class="rp-container">
+        <div class="rp-content">
+          <!-- Left Column: 3D Route Map -->
+          <div class="rp-map-wrapper">
+            <div class="rp-map-3d">
+              <!-- City grid bg -->
+              <div class="rp-grid-bg"></div>
+
+              <!-- Traffic congestion glow lines -->
+              <svg class="rp-traffic-svg" viewBox="0 0 520 360" fill="none">
+                <!-- Congestion lines (red) -->
+                <line x1="80" y1="60" x2="200" y2="90" stroke="#ff3333" stroke-width="2" opacity="0.3"/>
+                <line x1="150" y1="40" x2="280" y2="70" stroke="#ff3333" stroke-width="1.5" opacity="0.25"/>
+                <line x1="320" y1="280" x2="460" y2="310" stroke="#ff3333" stroke-width="2" opacity="0.2"/>
+                <!-- Route: Green (fastest) -->
+                <path d="M60,300 C100,260 140,200 200,170 C260,140 320,120 380,100 C420,85 460,70 490,50" stroke="#00ff9d" stroke-width="3.5" stroke-linecap="round" filter="url(#glowGreen)"/>
+                <!-- Route: White (alternative) -->
+                <path d="M60,300 C110,270 160,230 220,210 C280,190 340,170 400,140 C440,120 470,90 490,50" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-dasharray="8 5" stroke-linecap="round"/>
+                <!-- Route: Blue (slowest) -->
+                <path d="M60,300 C90,280 130,260 180,250 C230,240 290,220 350,200 C410,180 450,140 490,50" stroke="#00b4ff" stroke-width="2" stroke-dasharray="4 4" stroke-linecap="round" opacity="0.6"/>
+                <defs>
+                  <filter id="glowGreen">
+                    <feGaussianBlur stdDeviation="3" result="blur"/>
+                    <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                  </filter>
+                </defs>
+              </svg>
+
+              <!-- Route Legend -->
+              <div class="rp-legend">
+                <div class="rp-legend-item rp-legend-green">
+                  <span class="rp-legend-dot" style="background:#00ff9d;box-shadow:0 0 6px #00ff9d"></span>
+                  <span class="rp-legend-time">18 min</span>
+                  <span class="rp-legend-dist">6.2 km</span>
+                </div>
+                <div class="rp-legend-item rp-legend-white">
+                  <span class="rp-legend-dot" style="background:rgba(255,255,255,0.5)"></span>
+                  <span class="rp-legend-time">22 min</span>
+                  <span class="rp-legend-dist">7.6 km</span>
+                </div>
+                <div class="rp-legend-item rp-legend-blue">
+                  <span class="rp-legend-dot" style="background:#00b4ff"></span>
+                  <span class="rp-legend-time">25 min</span>
+                  <span class="rp-legend-dist">8.1 km</span>
+                </div>
+              </div>
+
+              <!-- Heavy Traffic Badge -->
+              <div class="rp-traffic-badge">
+                <span class="rp-traffic-icon">⚠</span>
+                <span>Heavy Traffic</span>
+              </div>
+
+              <!-- Ambulance on route -->
+              <div class="rp-ambulance">
+                <div class="rp-amb-body">
+                  <div class="rp-amb-cross">+</div>
+                  <div class="rp-amb-light"></div>
+                </div>
+              </div>
+
+              <!-- Destination Marker -->
+              <div class="rp-destination">
+                <div class="rp-dest-pin"></div>
+                <div class="rp-dest-info">
+                  <span class="rp-dest-name">City General Hospital</span>
+                  <span class="rp-dest-eta">ETA 10:32 PM</span>
+                </div>
+              </div>
+
+              <!-- Start Marker -->
+              <div class="rp-start-marker">
+                <span>START</span>
+              </div>
+
+              <!-- Map glow -->
+              <div class="rp-map-glow"></div>
+            </div>
+          </div>
+
+          <!-- Right Column: Feature Text -->
+          <div class="rp-feature-card">
+            <span class="rp-feature-label">FEATURE 2</span>
+            <h3 class="rp-feature-title">Dynamic Route Optimization</h3>
+            <p class="rp-feature-desc">Our AI continuously recalculates the fastest and safest route in real-time, factoring in live traffic, incidents, and road conditions.</p>
+            <button class="kf-cta-btn" onclick="enterDashboard()">
+              Get Free Access
+              <span class="lp-btn-arrow">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                  <path d="M1 5H9M9 5L5 1M9 5L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ========================================
+       SEVENTH PAGE: Dispatcher & Driver Interfaces (Feature 3)
+       ======================================== -->
+  <div id="dispatcher-page">
+    <canvas id="dispatcher-canvas"></canvas>
+
+    <!-- Navbar -->
+    <nav class="lp-navbar disp-nav">
+      <div class="lp-navbar-inner">
+        <div class="lp-logo">VitaRoute</div>
+        <div class="lp-nav-group">
+          <a href="#features" class="lp-nav-link">Features</a>
+          <a href="#solutions" class="lp-nav-link">Solutions</a>
+          <a href="#pricing" class="lp-nav-link">Pricing</a>
+          <button class="lp-btn-primary" onclick="enterDashboard()">
+            Get Free Access
+            <span class="lp-btn-arrow">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                <path d="M1 5H9M9 5L5 1M9 5L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Dispatcher Content -->
+    <section class="disp-section">
+      <div class="disp-container">
+        <div class="disp-content">
+          <!-- Left Column: Feature Text -->
+          <div class="disp-feature-card">
+            <span class="disp-feature-label">FEATURE 3</span>
+            <h3 class="disp-feature-title">Dispatcher & Driver Interfaces</h3>
+            <p class="disp-feature-desc">Seamless communication between command center and drivers. Dispatchers monitor the big picture while drivers get turn-by-turn routing directly on their devices.</p>
+            <button class="kf-cta-btn" onclick="enterDashboard()">
+              Get Free Access
+              <span class="lp-btn-arrow">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                  <path d="M1 5H9M9 5L5 1M9 5L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
+            </button>
+          </div>
+
+          <!-- Right Column: 3D Dashboard Mockup -->
+          <div class="disp-mockup-wrapper">
+            <div class="disp-mockup-3d">
+              
+              <!-- Dashboard Base -->
+              <div class="disp-dash-base">
+                
+                <!-- Sidebars -->
+                <div class="disp-sidebar disp-sidebar-left">
+                  <div class="disp-panel">
+                    <div class="disp-panel-title">Active Missions</div>
+                    <div class="disp-mission-item">M-1024 <span class="disp-dot" style="background:#00ff9d"></span></div>
+                    <div class="disp-mission-item">M-1025 <span class="disp-dot" style="background:#ff6b35"></span></div>
+                  </div>
+                </div>
+                
+                <!-- Map Area -->
+                <div class="disp-map-area">
+                  <div class="disp-grid-bg"></div>
+                  <svg class="disp-map-svg" viewBox="0 0 300 200" fill="none">
+                    <path d="M50,150 C100,100 150,120 250,50" stroke="#00ff9d" stroke-width="3" stroke-linecap="round"/>
+                  </svg>
+                  <div class="disp-vehicle v1">M-1024</div>
+                  <div class="disp-vehicle v2">M-1025</div>
+                </div>
+
+                <div class="disp-sidebar disp-sidebar-right">
+                  <div class="disp-panel">
+                    <div class="disp-panel-title">Live Map</div>
+                    <div class="disp-panel-content">Status: Connected</div>
+                  </div>
+                  <div class="disp-panel">
+                    <div class="disp-panel-title">Traffic Legend</div>
+                    <div class="disp-traffic-legend">
+                      <div class="legend-row"><span class="legend-color" style="background:#00ff9d"></span> Light</div>
+                      <div class="legend-row"><span class="legend-color" style="background:#ff6b35"></span> Heavy</div>
+                    </div>
+                  </div>
+                </div>
+                
+              </div>
+
+              <!-- Mobile Overlay -->
+              <div class="disp-mobile-overlay">
+                <div class="disp-mobile-screen">
+                  <div class="disp-mob-turn">
+                    <span class="disp-turn-arrow">↱</span>
+                    <span>350m Turn right</span>
+                  </div>
+                  <div class="disp-mob-stats">
+                    <div class="disp-mob-stat">Speed: 50</div>
+                    <div class="disp-mob-stat">ETA: 8:33 PM</div>
+                  </div>
+                  <div class="disp-mob-dest">
+                    City General Hospital Gate No. 3, Block A
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ========================================
        SECOND PAGE: Hero + Command Center Dashboard
        ======================================== -->
   <div id="dashboard-view" style="display: none;">
