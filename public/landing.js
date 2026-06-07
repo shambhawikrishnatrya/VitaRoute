@@ -1645,25 +1645,10 @@ async function submitLogin() {
 }
 
 // ─── Landing/Partners/Features → Dashboard Transition ─────────────────────────
-async function enterDashboard() {
+function enterDashboard() {
   if (isTransitioning) return;
   isTransitioning = true;
-
-  // Check auth status first
-  try {
-    const res = await fetch('/api/auth/status');
-    const data = await res.json();
-    
-    if (data.authenticated) {
-      proceedToDashboard();
-    } else {
-      isTransitioning = false;
-      showLoginModal();
-    }
-  } catch (err) {
-    isTransitioning = false;
-    showLoginModal();
-  }
+  proceedToDashboard();
 }
 
 function proceedToDashboard() {

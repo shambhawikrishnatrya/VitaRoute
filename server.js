@@ -530,25 +530,25 @@ function findNearestNode(lat, lng) {
 // Websocket connection events
 // Middleware to secure socket.io
 io.use((socket, next) => {
+  socket.user = 'guest'; // Default to guest
   const cookies = socket.handshake.headers.cookie;
-  if (!cookies) return next(new Error('Authentication error'));
-  
-  // Parse cookies manually for socket.io
-  const tokenStr = cookies.split(';').find(c => c.trim().startsWith('token='));
-  if (!tokenStr) return next(new Error('Authentication error'));
-  
-  const token = tokenStr.split('=')[1];
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    socket.user = decoded.username;
-    next();
-  } catch (e) {
-    next(new Error('Authentication error'));
+  if (cookies) {
+    const tokenStr = cookies.split(';').find(c => c.trim().startsWith('token='));
+    if (tokenStr) {
+      const token = tokenStr.split('=')[1];
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        socket.user = decoded.username;
+      } catch (e) {
+        // Token invalid, remain guest
+      }
+    }
   }
+  next(); // Always allow connection
 });
 
 io.on('connection', (socket) => {
-  console.log('Premium user connected:', socket.user, socket.id);
+  console.log(`${socket.user === 'guest' ? 'Free' : 'Premium'} user connected:`, socket.user, socket.id);
 
   // Send initial data to newly connected client
   socket.emit('init_data', {
@@ -559,8 +559,12 @@ io.on('connection', (socket) => {
     notifications
   });
 
-  // Dispatch event
+  // Dispatch event (Premium Feature)
   socket.on('dispatch_unit', (data) => {
+    if (socket.user === 'guest') {
+      return socket.emit('error_message', { message: "Premium Feature. Please log in.", requiresLogin: true });
+    }
+    
     const { unitId, incidentId } = data;
     const unit = ambulances[unitId];
     const incident = incidents.find(inc => inc.id === incidentId);
@@ -603,8 +607,12 @@ io.on('connection', (socket) => {
     io.emit('fleet_update', { ambulances, incidents, hospitals });
   });
 
-  // Reroute event
+  // Reroute event (Premium Feature)
   socket.on('reroute_unit', (data) => {
+    if (socket.user === 'guest') {
+      return socket.emit('error_message', { message: "Premium Feature. Please log in.", requiresLogin: true });
+    }
+
     const { unitId, hospitalId } = data;
     const unit = ambulances[unitId];
     const hospital = hospitals[hospitalId];
@@ -634,8 +642,12 @@ io.on('connection', (socket) => {
     io.emit('fleet_update', { ambulances, incidents, hospitals });
   });
 
-  // Manual Traffic Jam Injector
+  // Manual Traffic Jam Injector (Premium Feature)
   socket.on('toggle_traffic', (data) => {
+    if (socket.user === 'guest') {
+      return socket.emit('error_message', { message: "Premium Feature. Please log in.", requiresLogin: true });
+    }
+
     const { edgeId, isBlocked } = data;
     const edge = graph.edges.find(e => e.id === edgeId);
 
@@ -699,8 +711,12 @@ io.on('connection', (socket) => {
     io.emit('fleet_update', { ambulances, incidents, hospitals });
   });
 
-  // Create new incident (simulating calls)
+  // Create new incident (Premium Feature)
   socket.on('create_incident', (data) => {
+    if (socket.user === 'guest') {
+      return socket.emit('error_message', { message: "Premium Feature. Please log in.", requiresLogin: true });
+    }
+
     const { type, severity, locationNode } = data;
     const node = graph.nodes[locationNode];
 

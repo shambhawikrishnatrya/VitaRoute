@@ -424,5 +424,9 @@ socket.on('notification', (note) => {
 });
 
 socket.on('error_message', (data) => {
-  alert(`ERROR: ${data.message}`);
+  if (data.requiresLogin && typeof showLoginModal === 'function') {
+    showLoginModal();
+  } else {
+    alert("Error: " + data.message);
+  }
 });
