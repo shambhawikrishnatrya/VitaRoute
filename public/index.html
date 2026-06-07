@@ -17,6 +17,34 @@
 <body>
 
   <!-- ========================================
+       PREMIUM LOGIN MODAL
+       ======================================== -->
+  <div id="login-modal-overlay" style="display: none;">
+    <div class="login-modal">
+      <div class="login-header">
+        <h2 class="login-title">Premium Access Required</h2>
+        <p class="login-subtitle">Log in to VitaRoute Fleet Command.</p>
+      </div>
+      <div class="login-body">
+        <div class="input-group">
+          <label>Username</label>
+          <input type="text" id="login-username" placeholder="admin">
+        </div>
+        <div class="input-group">
+          <label>Password</label>
+          <input type="password" id="login-password" placeholder="••••••••">
+        </div>
+        <div id="login-error" style="color: #ef4444; font-size: 13px; margin-bottom: 12px; display: none;">Invalid credentials</div>
+        <button class="btn-submit" onclick="submitLogin()">Authenticate</button>
+        <button class="btn-back" onclick="closeLoginModal()">Cancel</button>
+      </div>
+      <div class="login-footer">
+        Hint: Use <strong>admin</strong> / <strong>password</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================
        LANDING PAGE (3D Hero)
        ======================================== -->
   <div id="landing-page">

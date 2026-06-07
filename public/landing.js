@@ -1599,11 +1599,74 @@
 var currentPage = 'landing'; // 'landing', 'partners', 'dashboard'
 var isTransitioning = false;
 
+// ─── AUTHENTICATION LOGIC ─────────────────────────────────────────────────────
+function closeLoginModal() {
+  document.getElementById('login-modal-overlay').style.display = 'none';
+  document.getElementById('login-error').style.display = 'none';
+}
+
+function showLoginModal() {
+  document.getElementById('login-modal-overlay').style.display = 'flex';
+}
+
+async function submitLogin() {
+  const usernameEl = document.getElementById('login-username');
+  const passwordEl = document.getElementById('login-password');
+  const errorEl = document.getElementById('login-error');
+
+  const username = usernameEl.value.trim();
+  const password = passwordEl.value.trim();
+
+  if (!username || !password) {
+    errorEl.innerText = "Please enter username and password.";
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    
+    if (data.success) {
+      closeLoginModal();
+      proceedToDashboard(); // Call the actual transition function
+    } else {
+      errorEl.innerText = data.message || "Invalid credentials";
+      errorEl.style.display = 'block';
+    }
+  } catch (err) {
+    errorEl.innerText = "Connection error. Try again.";
+    errorEl.style.display = 'block';
+  }
+}
+
 // ─── Landing/Partners/Features → Dashboard Transition ─────────────────────────
-function enterDashboard() {
+async function enterDashboard() {
   if (isTransitioning) return;
   isTransitioning = true;
 
+  // Check auth status first
+  try {
+    const res = await fetch('/api/auth/status');
+    const data = await res.json();
+    
+    if (data.authenticated) {
+      proceedToDashboard();
+    } else {
+      isTransitioning = false;
+      showLoginModal();
+    }
+  } catch (err) {
+    isTransitioning = false;
+    showLoginModal();
+  }
+}
+
+function proceedToDashboard() {
   // Stop any active 3D scenes
   if (window._stopLandingScene) window._stopLandingScene();
   if (window._stopPartnersScene) window._stopPartnersScene();

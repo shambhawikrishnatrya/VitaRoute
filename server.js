@@ -2,12 +2,50 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
+app.use(express.json());
+app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Mock User Database for Premium Dashboard Access
+const JWT_SECRET = 'vitaroute-super-secret-key-2026';
+const USERS = {
+  'admin': 'password',
+  'dispatcher': 'dispatch123'
+};
+
+// ─── AUTHENTICATION ROUTES ────────────────────────────────────────────────────
+app.post('/api/login', (req, res) => {
+  const { username, password } = req.body;
+  if (USERS[username] && USERS[username] === password) {
+    const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: '8h' });
+    res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
+    return res.json({ success: true });
+  }
+  return res.status(401).json({ success: false, message: 'Invalid credentials' });
+});
+
+app.post('/api/logout', (req, res) => {
+  res.clearCookie('token');
+  return res.json({ success: true });
+});
+
+app.get('/api/auth/status', (req, res) => {
+  const token = req.cookies.token;
+  if (!token) return res.json({ authenticated: false });
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    return res.json({ authenticated: true, user: decoded.username });
+  } catch (e) {
+    return res.json({ authenticated: false });
+  }
+});
 
 // Haversine Distance in Miles
 function haversineDistance(lat1, lon1, lat2, lon2) {
@@ -38,57 +76,49 @@ class PriorityQueue {
   }
 }
 
-// Map Graph Data representing San Francisco
+// Map Graph Data representing New Delhi, India
 const graph = {
   nodes: {
-    H1: { name: "SF General Hospital (Trauma Center)", lat: 37.7554, lng: -122.4048, isHospital: true },
-    H2: { name: "UCSF Medical Center (Mission Bay)", lat: 37.7678, lng: -122.3889, isHospital: true },
-    H3: { name: "Chinese Hospital", lat: 37.7947, lng: -122.4076, isHospital: true },
-    I1: { name: "Broadway & Stockton", lat: 37.7974, lng: -122.4085 },
-    I2: { name: "Embarcadero & Market", lat: 37.7937, lng: -122.3965 },
-    I3: { name: "Union Square", lat: 37.7876, lng: -122.4075 },
-    I4: { name: "Market & 5th", lat: 37.7841, lng: -122.4079 },
-    I5: { name: "Market & 8th", lat: 37.7786, lng: -122.4148 },
-    I6: { name: "Mission & 16th", lat: 37.7650, lng: -122.4196 },
-    I7: { name: "Folsom & 4th", lat: 37.7820, lng: -122.4005 },
-    I8: { name: "Folsom & 8th", lat: 37.7735, lng: -122.4116 },
-    I9: { name: "Civic Center", lat: 37.7801, lng: -122.4201 },
-    I10: { name: "Mission & 24th", lat: 37.7522, lng: -122.4183 },
-    I11: { name: "Potrero & 24th", lat: 37.7523, lng: -122.4078 },
-    I12: { name: "16th & Third St", lat: 37.7663, lng: -122.3896 },
-    I13: { name: "Castro (18th & Castro)", lat: 37.7609, lng: -122.4350 },
-    I14: { name: "Haight-Ashbury", lat: 37.7699, lng: -122.4469 },
-    I15: { name: "Pacific Heights (Broadway & Webster)", lat: 37.7938, lng: -122.4330 }
+    H1: { name: "AIIMS (Trauma Center)", lat: 28.5660, lng: 77.2066, isHospital: true },
+    H2: { name: "Safdarjung Hospital", lat: 28.5683, lng: 77.2057, isHospital: true },
+    H3: { name: "Dr. RML Hospital", lat: 28.6253, lng: 77.2010, isHospital: true },
+    I1: { name: "Connaught Place", lat: 28.6315, lng: 77.2167 },
+    I2: { name: "India Gate", lat: 28.6129, lng: 77.2295 },
+    I3: { name: "Hauz Khas", lat: 28.5494, lng: 77.2001 },
+    I4: { name: "South Ext", lat: 28.5677, lng: 77.2213 },
+    I5: { name: "Lajpat Nagar", lat: 28.5687, lng: 77.2433 },
+    I6: { name: "Saket", lat: 28.5246, lng: 77.2066 },
+    I7: { name: "Vasant Kunj", lat: 28.5293, lng: 77.1539 },
+    I8: { name: "Dhaula Kuan", lat: 28.5916, lng: 77.1614 },
+    I9: { name: "Karol Bagh", lat: 28.6510, lng: 77.1903 },
+    I10: { name: "Nehru Place", lat: 28.5501, lng: 77.2526 },
+    I11: { name: "Green Park", lat: 28.5589, lng: 77.2029 },
+    I12: { name: "Defense Colony", lat: 28.5744, lng: 77.2325 },
+    I13: { name: "Greater Kailash", lat: 28.5355, lng: 77.2346 },
+    I14: { name: "Dwarka", lat: 28.5833, lng: 77.0624 },
+    I15: { name: "Chanakyapuri", lat: 28.5954, lng: 77.1895 }
   },
   edges: [
-    { id: "E1", from: "I1", to: "I15", street: "Broadway", traffic: 1.0, baseTraffic: 1.0 },
-    { id: "E2", from: "I1", to: "H3", street: "Stockton St North", traffic: 1.2, baseTraffic: 1.2 },
-    { id: "E3", from: "H3", to: "I3", street: "Stockton St South", traffic: 2.0, baseTraffic: 2.0 },
-    { id: "E4", from: "H3", to: "I2", street: "Kearny St", traffic: 1.5, baseTraffic: 1.5 },
-    { id: "E5", from: "I2", to: "I4", street: "Market St East", traffic: 2.2, baseTraffic: 2.2 },
-    { id: "E6", from: "I4", to: "I5", street: "Market St Mid", traffic: 2.5, baseTraffic: 2.5 },
-    { id: "E7", from: "I5", to: "I9", street: "Market St West", traffic: 1.8, baseTraffic: 1.8 },
-    { id: "E8", from: "I3", to: "I15", street: "Geary Blvd East", traffic: 1.5, baseTraffic: 1.5 },
-    { id: "E9", from: "I4", to: "I7", street: "5th St", traffic: 1.3, baseTraffic: 1.3 },
-    { id: "E10", from: "I5", to: "I8", street: "8th St", traffic: 1.4, baseTraffic: 1.4 },
-    { id: "E11", from: "I7", to: "I8", street: "Folsom St East", traffic: 1.6, baseTraffic: 1.6 },
-    { id: "E12", from: "I8", to: "I9", street: "Folsom St West", traffic: 1.2, baseTraffic: 1.2 },
-    { id: "E13", from: "I2", to: "I7", street: "101 Freeway North", traffic: 2.8, baseTraffic: 2.8 },
-    { id: "E14", from: "I7", to: "I12", street: "101 Freeway South", traffic: 3.0, baseTraffic: 3.0 },
-    { id: "E15", from: "I8", to: "I6", street: "Potrero Ave North", traffic: 1.4, baseTraffic: 1.4 },
-    { id: "E16", from: "I6", to: "H1", street: "Potrero Ave Mid", traffic: 1.5, baseTraffic: 1.5 },
-    { id: "E17", from: "H1", to: "I11", street: "Potrero Ave South", traffic: 1.2, baseTraffic: 1.2 },
-    { id: "E18", from: "I9", to: "I6", street: "Mission St North", traffic: 2.0, baseTraffic: 2.0 },
-    { id: "E19", from: "I6", to: "I10", street: "Mission St South", traffic: 1.8, baseTraffic: 1.8 },
-    { id: "E20", from: "I6", to: "I12", street: "16th St East", traffic: 1.3, baseTraffic: 1.3 },
-    { id: "E21", from: "I12", to: "H2", street: "16th St Waterfront", traffic: 1.1, baseTraffic: 1.1 },
-    { id: "E22", from: "I10", to: "I11", street: "24th St East", traffic: 1.2, baseTraffic: 1.2 },
-    { id: "E23", from: "I11", to: "H1", street: "24th St SFGH Access", traffic: 1.1, baseTraffic: 1.1 },
-    { id: "E24", from: "I9", to: "I13", street: "Duboce Ave", traffic: 1.4, baseTraffic: 1.4 },
-    { id: "E25", from: "I9", to: "I14", street: "Fell St", traffic: 2.2, baseTraffic: 2.2 },
-    { id: "E26", from: "I13", to: "I14", street: "Castro St North", traffic: 1.3, baseTraffic: 1.3 },
-    { id: "E27", from: "I13", to: "I10", street: "Castro St South", traffic: 1.1, baseTraffic: 1.1 },
-    { id: "E28", from: "I14", to: "I15", street: "Divisadero St", traffic: 1.5, baseTraffic: 1.5 }
+    { id: "E1", from: "H3", to: "I1", street: "Baba Kharak Singh Marg", traffic: 1.5, baseTraffic: 1.5 },
+    { id: "E2", from: "I1", to: "I2", street: "Kasturba Gandhi Marg", traffic: 2.0, baseTraffic: 2.0 },
+    { id: "E3", from: "I2", to: "I15", street: "Shanti Path", traffic: 1.2, baseTraffic: 1.2 },
+    { id: "E4", from: "I15", to: "I8", street: "Sardar Patel Marg", traffic: 1.8, baseTraffic: 1.8 },
+    { id: "E5", from: "I8", to: "I14", street: "NH48", traffic: 2.5, baseTraffic: 2.5 },
+    { id: "E6", from: "H3", to: "I9", street: "Pusa Road", traffic: 2.2, baseTraffic: 2.2 },
+    { id: "E7", from: "I2", to: "I4", street: "Mathura Road", traffic: 2.1, baseTraffic: 2.1 },
+    { id: "E8", from: "I4", to: "H1", street: "Ring Road East", traffic: 2.5, baseTraffic: 2.5 },
+    { id: "E9", from: "H1", to: "H2", street: "Sri Aurobindo Marg", traffic: 1.1, baseTraffic: 1.1 },
+    { id: "E10", from: "H1", to: "I11", street: "Aurobindo Marg South", traffic: 1.5, baseTraffic: 1.5 },
+    { id: "E11", from: "I11", to: "I3", street: "Hauz Khas Road", traffic: 1.4, baseTraffic: 1.4 },
+    { id: "E12", from: "I3", to: "I6", street: "Press Enclave Marg", traffic: 1.8, baseTraffic: 1.8 },
+    { id: "E13", from: "I3", to: "I7", street: "Outer Ring Road", traffic: 1.5, baseTraffic: 1.5 },
+    { id: "E14", from: "I8", to: "H2", street: "Ring Road West", traffic: 2.3, baseTraffic: 2.3 },
+    { id: "E15", from: "I4", to: "I5", street: "Ring Road South", traffic: 2.8, baseTraffic: 2.8 },
+    { id: "E16", from: "I5", to: "I10", street: "Lala Lajpat Rai Marg", traffic: 1.9, baseTraffic: 1.9 },
+    { id: "E17", from: "I10", to: "I13", street: "Outer Ring Road East", traffic: 1.7, baseTraffic: 1.7 },
+    { id: "E18", from: "I13", to: "I6", street: "BRT Corridor", traffic: 2.2, baseTraffic: 2.2 },
+    { id: "E19", from: "I4", to: "I12", street: "Bhishma Pitamah Marg", traffic: 1.6, baseTraffic: 1.6 },
+    { id: "E20", from: "I12", to: "I5", street: "Def Col Road", traffic: 1.3, baseTraffic: 1.3 }
   ]
 };
 
@@ -190,7 +220,7 @@ let ambulances = {
   "RESCUE-101": {
     id: "RESCUE-101",
     name: "RESCUE-101",
-    status: "IDLE", // IDLE, DISPATCHED, EN ROUTE, AT SCENE, RETURNING
+    status: "IDLE",
     lat: graph.nodes.H1.lat,
     lng: graph.nodes.H1.lng,
     speed: 0,
@@ -199,7 +229,7 @@ let ambulances = {
     routeIndex: 0,
     routeProgress: 0,
     destination: null,
-    destinationType: null, // incident, hospital
+    destinationType: null,
     targetId: null,
     lastUpdate: Date.now()
   },
@@ -230,7 +260,7 @@ let ambulances = {
     route: [],
     routeIndex: 0,
     routeProgress: 0,
-    destination: "I3", // Union Square (INCIDENT-301)
+    destination: "I1", 
     destinationType: "incident",
     targetId: "INCIDENT-301",
     lastUpdate: Date.now()
@@ -246,7 +276,7 @@ let ambulances = {
     route: [],
     routeIndex: 0,
     routeProgress: 0,
-    destination: "I13", // Castro (INCIDENT-302)
+    destination: "I14", 
     destinationType: "incident",
     targetId: "INCIDENT-302",
     lastUpdate: Date.now()
@@ -255,14 +285,14 @@ let ambulances = {
     id: "RESCUE-105",
     name: "RESCUE-105",
     status: "AT SCENE",
-    lat: graph.nodes.I15.lat,
-    lng: graph.nodes.I15.lng,
+    lat: graph.nodes.I10.lat,
+    lng: graph.nodes.I10.lng,
     speed: 0,
     crew: 2,
     route: [],
     routeIndex: 0,
     routeProgress: 0,
-    destination: "I15", // Pacific Heights (INCIDENT-303)
+    destination: "I10", 
     destinationType: "incident",
     targetId: "INCIDENT-303",
     lastUpdate: Date.now()
@@ -270,34 +300,36 @@ let ambulances = {
 };
 
 let incidents = [
-  { id: "INCIDENT-301", type: "Cardiac Arrest", severity: "CRITICAL", locationNode: "I3", lat: graph.nodes.I3.lat, lng: graph.nodes.I3.lng, status: "ACTIVE", assignedUnit: "RESCUE-103" },
-  { id: "INCIDENT-302", type: "Major MVA", severity: "CRITICAL", locationNode: "I13", lat: graph.nodes.I13.lat, lng: graph.nodes.I13.lng, status: "ACTIVE", assignedUnit: "RESCUE-104" },
-  { id: "INCIDENT-303", type: "Respiratory Distress", severity: "SERIOUS", locationNode: "I15", lat: graph.nodes.I15.lat, lng: graph.nodes.I15.lng, status: "ACTIVE", assignedUnit: "RESCUE-105" }
+  { id: "INCIDENT-301", type: "Cardiac Arrest", severity: "CRITICAL", locationNode: "I1", lat: graph.nodes.I1.lat, lng: graph.nodes.I1.lng, status: "ACTIVE", assignedUnit: "RESCUE-103" },
+  { id: "INCIDENT-302", type: "Major MVA", severity: "CRITICAL", locationNode: "I14", lat: graph.nodes.I14.lat, lng: graph.nodes.I14.lng, status: "ACTIVE", assignedUnit: "RESCUE-104" },
+  { id: "INCIDENT-303", type: "Respiratory Distress", severity: "SERIOUS", locationNode: "I10", lat: graph.nodes.I10.lat, lng: graph.nodes.I10.lng, status: "ACTIVE", assignedUnit: "RESCUE-105" }
 ];
 
 let hospitals = {
-  H1: { id: "H1", name: "San Francisco General Hospital", code: "SFGH", lat: 37.7554, lng: -122.4048, type: "TRAUMA", beds: 15, maxBeds: 45, erStatus: "NORMAL" },
-  H2: { id: "H2", name: "UCSF Medical Center", code: "UCSF", lat: 37.7678, lng: -122.3889, type: "TRAUMA", beds: 13, maxBeds: 30, erStatus: "BUSY" },
-  H3: { id: "H3", name: "Chinese Hospital", code: "CHIN", lat: 37.7947, lng: -122.4076, type: "GENERAL", beds: 7, maxBeds: 15, erStatus: "NORMAL" }
+  H1: { id: "H1", name: "AIIMS (Trauma Center)", code: "AIIMS", lat: 28.5660, lng: 77.2066, type: "TRAUMA", beds: 15, maxBeds: 45, erStatus: "NORMAL" },
+  H2: { id: "H2", name: "Safdarjung Hospital", code: "SJH", lat: 28.5683, lng: 77.2057, type: "TRAUMA", beds: 13, maxBeds: 30, erStatus: "BUSY" },
+  H3: { id: "H3", name: "Dr. RML Hospital", code: "RML", lat: 28.6253, lng: 77.2010, type: "GENERAL", beds: 7, maxBeds: 15, erStatus: "NORMAL" }
 };
 
 // Set initial routes for active simulation units
-// RESCUE-103: H2 -> I3 (Union Square)
-const route103 = dijkstra("H2", "I3", true);
+// RESCUE-103: H2 -> I1 (Connaught Place)
+const route103 = dijkstra("H2", "I1", true);
 ambulances["RESCUE-103"].route = route103;
 ambulances["RESCUE-103"].routeIndex = 0;
 ambulances["RESCUE-103"].routeProgress = 0.01;
+ambulances["RESCUE-103"].destination = "I1";
 
-// RESCUE-104: H3 -> I13 (Castro)
-const route104 = dijkstra("H3", "I13", true);
+// RESCUE-104: H3 -> I14 (Dwarka)
+const route104 = dijkstra("H3", "I14", true);
 ambulances["RESCUE-104"].route = route104;
 ambulances["RESCUE-104"].routeIndex = 0;
 ambulances["RESCUE-104"].routeProgress = 0.01;
+ambulances["RESCUE-104"].destination = "I14";
 
 // Notifications list to push to client
 let notifications = [
   { id: 1, text: "System Online: 5 units connected to Fleet Command.", time: new Date().toLocaleTimeString(), type: "info" },
-  { id: 2, text: "INCIDENT-301 reported: Cardiac Arrest at Union Square.", time: new Date().toLocaleTimeString(), type: "critical" },
+  { id: 2, text: "INCIDENT-301 reported: Cardiac Arrest at Connaught Place.", time: new Date().toLocaleTimeString(), type: "critical" },
   { id: 3, text: "RESCUE-103 dispatched to INCIDENT-301.", time: new Date().toLocaleTimeString(), type: "dispatch" }
 ];
 
@@ -496,8 +528,27 @@ function findNearestNode(lat, lng) {
 }
 
 // Websocket connection events
+// Middleware to secure socket.io
+io.use((socket, next) => {
+  const cookies = socket.handshake.headers.cookie;
+  if (!cookies) return next(new Error('Authentication error'));
+  
+  // Parse cookies manually for socket.io
+  const tokenStr = cookies.split(';').find(c => c.trim().startsWith('token='));
+  if (!tokenStr) return next(new Error('Authentication error'));
+  
+  const token = tokenStr.split('=')[1];
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    socket.user = decoded.username;
+    next();
+  } catch (e) {
+    next(new Error('Authentication error'));
+  }
+});
+
 io.on('connection', (socket) => {
-  console.log('Client connected:', socket.id);
+  console.log('Premium user connected:', socket.user, socket.id);
 
   // Send initial data to newly connected client
   socket.emit('init_data', {

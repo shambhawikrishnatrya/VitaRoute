@@ -29,7 +29,7 @@ function initMap(initialGraph) {
   map = L.map('vr-map', {
     zoomControl: false,
     attributionControl: false
-  }).setView([37.7749, -122.4194], 13);
+  }).setView([28.6139, 77.2090], 12);
 
   L.control.zoom({ position: 'topright' }).addTo(map);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
