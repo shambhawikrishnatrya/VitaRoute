@@ -565,3 +565,40 @@ socket.on('error_message', (data) => {
     alert("Error: " + data.message);
   }
 });
+
+// ─── Modal & Panel Handlers ───────────────────────────────────────────────────
+
+window.openModal = function(id) {
+  const modal = document.getElementById(id);
+  if (modal) modal.classList.add('show');
+};
+
+window.closeModal = function(e, id) {
+  // If event is passed and target is not the modal backdrop, ignore
+  if (e && e.target.id !== id) return;
+  const modal = document.getElementById(id);
+  if (modal) modal.classList.remove('show');
+};
+
+window.openSlidePanel = function(id) {
+  const panel = document.getElementById(id);
+  if (panel) panel.classList.add('show');
+};
+
+window.closeSlidePanel = function(id) {
+  const panel = document.getElementById(id);
+  if (panel) panel.classList.remove('show');
+};
+
+window.switchDashTab = function(btn) {
+  // Remove active from siblings
+  const siblings = btn.parentElement.querySelectorAll('.vr-dash-tab');
+  siblings.forEach(s => s.classList.remove('active'));
+  btn.classList.add('active');
+  
+  // Optional: show some notification that view switched
+  const tabName = btn.innerText;
+  if (window.toast) {
+    window.toast("Switched to " + tabName + " View");
+  }
+};
