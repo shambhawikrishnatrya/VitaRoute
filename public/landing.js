@@ -1628,7 +1628,6 @@ function enterDashboard() {
   var testimonialspage = document.getElementById('testimonials-page');
   var pricingpage = document.getElementById('pricing-page');
   var ctapage = document.getElementById('cta-page');
-  var demopage = document.getElementById('demo-page');
   var dashboard = document.getElementById('dashboard-view');
 
   // Hide all pages, show dashboard
@@ -1643,7 +1642,6 @@ function enterDashboard() {
   if (testimonialspage) testimonialspage.style.display = 'none';
   if (pricingpage) pricingpage.style.display = 'none';
   if (ctapage) ctapage.style.display = 'none';
-  if (demopage) demopage.style.display = 'none';
   if (dashboard) dashboard.style.display = 'block';
 
   // Apply dashboard body class (allows scrolling)
@@ -1678,7 +1676,7 @@ function enterDashboard() {
   }, { threshold: 0.15 });
 
   var pages = [
-    'landing-page', 'partners-page', 'features-page', 'demo-page', 'keyfeatures-page', 
+    'landing-page', 'partners-page', 'features-page', 'keyfeatures-page', 
     'route-page', 'dispatcher-page', 'solutions-page', 'benefits-page', 
     'testimonials-page', 'pricing-page', 'cta-page'
   ];
@@ -1692,133 +1690,4 @@ function enterDashboard() {
   });
 })();
 
-// ─── LIVE INTERACTIVE MAP DEMO ───────────────────────────────────────────────
-(function() {
-  var mapEl = document.getElementById('live-demo-map');
-  if (!mapEl || typeof L === 'undefined') return;
 
-  var demoMap = L.map('live-demo-map', {
-    zoomControl: false,
-    scrollWheelZoom: false // Prevent scrolling issues on landing page
-  }).setView([40.7128, -74.0060], 13);
-
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; <a href="https://carto.com/attributions">CARTO</a>'
-  }).addTo(demoMap);
-
-  // Custom icons
-  var ambIcon = L.divIcon({
-    className: 'demo-amb-marker',
-    html: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>',
-    iconSize: [32, 32],
-    iconAnchor: [16, 16]
-  });
-
-  var emgIcon = L.divIcon({
-    className: 'demo-emg-marker',
-    html: '',
-    iconSize: [16, 16],
-    iconAnchor: [8, 8]
-  });
-
-  // Ambulances pool
-  var ambulances = [
-    { id: 1, pos: [40.7200, -74.0100], marker: L.marker([40.7200, -74.0100], {icon: ambIcon}).addTo(demoMap) },
-    { id: 2, pos: [40.7050, -74.0150], marker: L.marker([40.7050, -74.0150], {icon: ambIcon}).addTo(demoMap) },
-    { id: 3, pos: [40.7150, -73.9900], marker: L.marker([40.7150, -73.9900], {icon: ambIcon}).addTo(demoMap) }
-  ];
-
-  var currentEmgMarker = null;
-  var currentRouteLine = null;
-  var isDispatching = false;
-
-  var statusEl = document.getElementById('demo-status');
-  var etaEl = document.getElementById('demo-eta');
-  var distEl = document.getElementById('demo-dist');
-
-  demoMap.on('click', function(e) {
-    if (isDispatching) return;
-    
-    var dest = [e.latlng.lat, e.latlng.lng];
-
-    if (currentEmgMarker) {
-      demoMap.removeLayer(currentEmgMarker);
-    }
-    if (currentRouteLine) {
-      demoMap.removeLayer(currentRouteLine);
-    }
-
-    currentEmgMarker = L.marker(dest, {icon: emgIcon}).addTo(demoMap);
-    statusEl.innerText = "Finding nearest ambulance...";
-    statusEl.style.color = "#f59e0b";
-
-    setTimeout(function() {
-      // Find nearest
-      var nearest = null;
-      var minDist = Infinity;
-      ambulances.forEach(function(a) {
-        var d = demoMap.distance(a.pos, dest);
-        if (d < minDist) { minDist = d; nearest = a; }
-      });
-
-      statusEl.innerText = "Dispatching Unit " + nearest.id + "...";
-      statusEl.style.color = "#3b82f6";
-
-      // Draw fake route
-      var routeCoords = [
-        nearest.pos,
-        [nearest.pos[0] + (dest[0]-nearest.pos[0])*0.5, nearest.pos[1]],
-        dest
-      ];
-
-      currentRouteLine = L.polyline(routeCoords, {
-        color: '#10b981', weight: 4, opacity: 0.8, dashArray: '10, 10'
-      }).addTo(demoMap);
-
-      demoMap.fitBounds(currentRouteLine.getBounds(), {padding: [50, 50]});
-
-      var distKm = (minDist / 1000).toFixed(1);
-      var etaMins = Math.max(1, Math.round(minDist / 500));
-      distEl.innerText = distKm + " km";
-      etaEl.innerText = etaMins + " mins";
-
-      isDispatching = true;
-
-      // Animate marker
-      var step = 0;
-      var totalSteps = 60;
-      var interval = setInterval(function() {
-        step++;
-        var progress = step / totalSteps;
-        
-        var currentLat, currentLng;
-        if (progress < 0.5) {
-          var p2 = progress * 2;
-          currentLat = routeCoords[0][0] + (routeCoords[1][0] - routeCoords[0][0]) * p2;
-          currentLng = routeCoords[0][1] + (routeCoords[1][1] - routeCoords[0][1]) * p2;
-        } else {
-          var p2 = (progress - 0.5) * 2;
-          currentLat = routeCoords[1][0] + (routeCoords[2][0] - routeCoords[1][0]) * p2;
-          currentLng = routeCoords[1][1] + (routeCoords[2][1] - routeCoords[1][1]) * p2;
-        }
-
-        nearest.marker.setLatLng([currentLat, currentLng]);
-        nearest.pos = [currentLat, currentLng];
-
-        if (step >= totalSteps) {
-          clearInterval(interval);
-          isDispatching = false;
-          statusEl.innerText = "Arrived at destination.";
-          statusEl.style.color = "#10b981";
-          demoMap.removeLayer(currentEmgMarker);
-          demoMap.removeLayer(currentRouteLine);
-          currentEmgMarker = null;
-          currentRouteLine = null;
-          distEl.innerText = "--";
-          etaEl.innerText = "--";
-        }
-      }, 50);
-
-    }, 600);
-  });
-})();
