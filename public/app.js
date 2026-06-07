@@ -140,6 +140,40 @@ function setupInteractiveDemo(demoMap, ambIcon, emgIcon) {
   });
 }
 
+// ─── Leaflet Map ──────────────────────────────────────────────────────────────
+let map = null;
+let routePolylines = [];
+
+function reinitMap() {
+  if (mapInitialized || !pendingInitData) return;
+  initMap(pendingInitData.graph);
+  renderAll();
+  mapInitialized = true;
+  pendingInitData = null;
+}
+
+window.resizeMap = function() {
+  if (map) map.invalidateSize();
+};
+
+function initMap(initialGraph) {
+  graph = initialGraph;
+  const el = document.getElementById('vr-map');
+  if (!el) return;
+
+  map = L.map('vr-map', {
+    zoomControl: false,
+    attributionControl: false
+  }).setView([28.6139, 77.2090], 12);
+
+  L.control.zoom({ position: 'topright' }).addTo(map);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    maxZoom: 20, subdomains: 'abcd'
+  }).addTo(map);
+
+  renderMapMarkers();
+}
+
 // ─── Haversine Distance ───────────────────────────────────────────────────────
 function haversineDistance(lat1, lon1, lat2, lon2) {
   const R = 3958.8;
