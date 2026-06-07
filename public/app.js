@@ -1,5 +1,11 @@
 // VitaRoute Command Center — Client Logic
-const socket = io();
+let socket;
+if (typeof io !== 'undefined') {
+  socket = io();
+} else {
+  console.log("Socket.io library not loaded. Running in local fallback mode.");
+  socket = { on: function(){}, emit: function(){} };
+}
 
 // ─── Application State ────────────────────────────────────────────────────────
 let graph = null;
