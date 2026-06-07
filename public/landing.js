@@ -1711,12 +1711,21 @@ function proceedToDashboard() {
   }
 }
 
-// Check if returning from video demo
+// Check if returning from video demo or navigating from dashboard
 document.addEventListener("DOMContentLoaded", function() {
   if (sessionStorage.getItem('returnToDashboard') === 'true') {
     sessionStorage.removeItem('returnToDashboard');
     // Call enterDashboard but delay slightly to ensure DOM is ready
     setTimeout(enterDashboard, 50);
+  }
+  
+  var section = sessionStorage.getItem('scrollToSection');
+  if (section) {
+    sessionStorage.removeItem('scrollToSection');
+    setTimeout(function() {
+      var el = document.getElementById(section);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
   }
 });
 

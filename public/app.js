@@ -602,3 +602,8 @@ window.switchDashTab = function(btn) {
     window.toast("Switched to " + tabName + " View");
   }
 };
+
+window.returnToLanding = function(sectionId) {
+  sessionStorage.setItem('scrollToSection', sectionId);
+  window.location.reload();
+};
