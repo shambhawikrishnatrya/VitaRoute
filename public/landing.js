@@ -1679,6 +1679,9 @@ function proceedToDashboard() {
   var dashboard = document.getElementById('dashboard-view');
 
   // Hide all pages, show dashboard
+  var globalNav = document.getElementById('global-landing-nav');
+  if (globalNav) globalNav.style.display = 'none';
+  
   if (landing) landing.style.display = 'none';
   if (partners) partners.style.display = 'none';
   if (features) features.style.display = 'none';

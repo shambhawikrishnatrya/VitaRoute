@@ -17,6 +17,30 @@
 <body>
 
   <!-- ========================================
+       GLOBAL LANDING NAVBAR
+       ======================================== -->
+  <nav id="global-landing-nav" class="lp-navbar" style="position: fixed; top: 0; left: 0; width: 100%; z-index: 9999;">
+    <div class="lp-navbar-inner">
+      <div class="lp-logo" style="cursor: pointer;" onclick="window.location.reload()">VitaRoute</div>
+      <div class="lp-nav-group">
+        <a href="#keyfeatures-page" class="lp-nav-link">Features</a>
+        <a href="#solutions-page" class="lp-nav-link">Solutions</a>
+        <a href="#pricing-page" class="lp-nav-link">Pricing</a>
+        <a href="javascript:void(0)" class="lp-nav-link" onclick="showLoginModal()" style="color: #3b82f6; font-weight: 600;">Log In</a>
+        <button class="lp-btn-primary" onclick="enterDashboard()">
+          Get Free Access
+          <span class="lp-btn-arrow">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+              <path d="M1 5H9M9 5L5 1M9 5L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+
+  <!-- ========================================
        PREMIUM LOGIN MODAL
        ======================================== -->
   <div id="login-modal-overlay" style="display: none;">
@@ -52,25 +76,7 @@
     <canvas id="three-canvas"></canvas>
 
     <!-- Navbar -->
-    <nav class="lp-navbar">
-      <div class="lp-navbar-inner">
-        <div class="lp-logo" style="cursor: pointer;" onclick="window.location.reload()">VitaRoute</div>
-        <div class="lp-nav-group">
-          <a href="#keyfeatures-page" class="lp-nav-link">Features</a>
-          <a href="#solutions-page" class="lp-nav-link">Solutions</a>
-          <a href="#pricing-page" class="lp-nav-link">Pricing</a>
-          <a href="javascript:void(0)" class="lp-nav-link" onclick="showLoginModal()" style="color: #3b82f6; font-weight: 600;">Log In</a>
-          <button class="lp-btn-primary" onclick="enterDashboard()">
-            Get Free Access
-            <span class="lp-btn-arrow">
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                <path d="M1 5H9M9 5L5 1M9 5L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </span>
-          </button>
-        </div>
-      </div>
-    </nav>
+    
 
     <!-- Hero Section -->
     <section class="lp-hero">
@@ -113,24 +119,7 @@
     <canvas id="partners-canvas"></canvas>
 
     <!-- Navbar -->
-    <nav class="lp-navbar">
-      <div class="lp-navbar-inner">
-        <div class="lp-logo" style="cursor: pointer;" onclick="window.location.reload()">VitaRoute</div>
-        <div class="lp-nav-group">
-          <a href="#keyfeatures-page" class="lp-nav-link">Features</a>
-          <a href="#solutions-page" class="lp-nav-link">Solutions</a>
-          <a href="#pricing-page" class="lp-nav-link">Pricing</a>
-          <button class="lp-btn-primary" onclick="enterDashboard()">
-            Get Free Access
-            <span class="lp-btn-arrow">
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                <path d="M1 5H9M9 5L5 1M9 5L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </span>
-          </button>
-        </div>
-      </div>
-    </nav>
+    
 
     <!-- Partners Content -->
     <section class="partners-section">
@@ -222,24 +211,7 @@
        LIVE DEMO PAGE
        ======================================== -->
   <div id="demo-page">
-    <nav class="lp-navbar demo-nav">
-      <div class="lp-navbar-inner">
-        <div class="lp-logo" style="cursor: pointer;" onclick="window.location.reload()">VitaRoute</div>
-        <div class="lp-nav-group">
-          <a href="#keyfeatures-page" class="lp-nav-link">Features</a>
-          <a href="#solutions-page" class="lp-nav-link">Solutions</a>
-          <a href="#pricing-page" class="lp-nav-link">Pricing</a>
-          <button class="lp-btn-primary" onclick="enterDashboard()">
-            Get Free Access
-            <span class="lp-btn-arrow">
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                <path d="M1 5H9M9 5L5 1M9 5L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </span>
-          </button>
-        </div>
-      </div>
-    </nav>
+    
 
     <section class="demo-section">
       <div class="demo-container">
@@ -276,24 +248,7 @@
     <canvas id="features-canvas"></canvas>
 
     <!-- Navbar -->
-    <nav class="lp-navbar features-nav">
-      <div class="lp-navbar-inner">
-        <div class="lp-logo" style="cursor: pointer;" onclick="window.location.reload()">VitaRoute</div>
-        <div class="lp-nav-group">
-          <a href="#keyfeatures-page" class="lp-nav-link">Features</a>
-          <a href="#solutions-page" class="lp-nav-link">Solutions</a>
-          <a href="#pricing-page" class="lp-nav-link">Pricing</a>
-          <button class="lp-btn-primary" onclick="enterDashboard()">
-            Get Free Access
-            <span class="lp-btn-arrow">
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                <path d="M1 5H9M9 5L5 1M9 5L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </span>
-          </button>
-        </div>
-      </div>
-    </nav>
+    
 
     <!-- Features Content -->
     <section class="features-section">
@@ -492,24 +447,7 @@
     <canvas id="keyfeatures-canvas"></canvas>
 
     <!-- Navbar -->
-    <nav class="lp-navbar kf-nav">
-      <div class="lp-navbar-inner">
-        <div class="lp-logo" style="cursor: pointer;" onclick="window.location.reload()">VitaRoute</div>
-        <div class="lp-nav-group">
-          <a href="#keyfeatures-page" class="lp-nav-link">Features</a>
-          <a href="#solutions-page" class="lp-nav-link">Solutions</a>
-          <a href="#pricing-page" class="lp-nav-link">Pricing</a>
-          <button class="lp-btn-primary" onclick="enterDashboard()">
-            Get Free Access
-            <span class="lp-btn-arrow">
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                <path d="M1 5H9M9 5L5 1M9 5L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </span>
-          </button>
-        </div>
-      </div>
-    </nav>
+    
 
     <!-- Key Features Content -->
     <section class="kf-section">
@@ -632,24 +570,7 @@
     <canvas id="route-canvas"></canvas>
 
     <!-- Navbar -->
-    <nav class="lp-navbar rp-nav">
-      <div class="lp-navbar-inner">
-        <div class="lp-logo" style="cursor: pointer;" onclick="window.location.reload()">VitaRoute</div>
-        <div class="lp-nav-group">
-          <a href="#keyfeatures-page" class="lp-nav-link">Features</a>
-          <a href="#solutions-page" class="lp-nav-link">Solutions</a>
-          <a href="#pricing-page" class="lp-nav-link">Pricing</a>
-          <button class="lp-btn-primary" onclick="enterDashboard()">
-            Get Free Access
-            <span class="lp-btn-arrow">
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                <path d="M1 5H9M9 5L5 1M9 5L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </span>
-          </button>
-        </div>
-      </div>
-    </nav>
+    
 
     <!-- Route Page Content -->
     <section class="rp-section">
@@ -759,24 +680,7 @@
     <canvas id="dispatcher-canvas"></canvas>
 
     <!-- Navbar -->
-    <nav class="lp-navbar disp-nav">
-      <div class="lp-navbar-inner">
-        <div class="lp-logo" style="cursor: pointer;" onclick="window.location.reload()">VitaRoute</div>
-        <div class="lp-nav-group">
-          <a href="#keyfeatures-page" class="lp-nav-link">Features</a>
-          <a href="#solutions-page" class="lp-nav-link">Solutions</a>
-          <a href="#pricing-page" class="lp-nav-link">Pricing</a>
-          <button class="lp-btn-primary" onclick="enterDashboard()">
-            Get Free Access
-            <span class="lp-btn-arrow">
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                <path d="M1 5H9M9 5L5 1M9 5L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </span>
-          </button>
-        </div>
-      </div>
-    </nav>
+    
 
     <!-- Dispatcher Content -->
     <section class="disp-section">
@@ -871,24 +775,7 @@
     <canvas id="solutions-canvas"></canvas>
 
     <!-- Navbar -->
-    <nav class="lp-navbar sol-nav">
-      <div class="lp-navbar-inner">
-        <div class="lp-logo" style="cursor: pointer;" onclick="window.location.reload()">VitaRoute</div>
-        <div class="lp-nav-group">
-          <a href="#keyfeatures-page" class="lp-nav-link">Features</a>
-          <a href="#solutions-page" class="lp-nav-link">Solutions</a>
-          <a href="#pricing-page" class="lp-nav-link">Pricing</a>
-          <button class="lp-btn-primary" onclick="enterDashboard()">
-            Get Free Access
-            <span class="lp-btn-arrow">
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                <path d="M1 5H9M9 5L5 1M9 5L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </span>
-          </button>
-        </div>
-      </div>
-    </nav>
+    
 
     <!-- Solutions Content -->
     <section class="sol-section">
@@ -945,24 +832,7 @@
     <canvas id="benefits-canvas"></canvas>
 
     <!-- Navbar -->
-    <nav class="lp-navbar sol-nav">
-      <div class="lp-navbar-inner">
-        <div class="lp-logo" style="cursor: pointer;" onclick="window.location.reload()">VitaRoute</div>
-        <div class="lp-nav-group">
-          <a href="#keyfeatures-page" class="lp-nav-link">Features</a>
-          <a href="#solutions-page" class="lp-nav-link">Solutions</a>
-          <a href="#pricing-page" class="lp-nav-link">Pricing</a>
-          <button class="lp-btn-primary" onclick="enterDashboard()">
-            Get Free Access
-            <span class="lp-btn-arrow">
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                <path d="M1 5H9M9 5L5 1M9 5L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </span>
-          </button>
-        </div>
-      </div>
-    </nav>
+    
 
     <!-- Benefits Content -->
     <section class="sol-section">
@@ -1014,25 +884,7 @@
     <canvas id="testimonials-canvas"></canvas>
 
     <!-- Navbar -->
-    <nav class="lp-navbar test-nav">
-      <div class="lp-navbar-inner">
-        <div class="lp-logo" style="cursor: pointer;" onclick="window.location.reload()">VitaRoute</div>
-        <div class="lp-nav-group">
-          <a href="#hero-page" class="lp-nav-link">Home</a>
-          <a href="#keyfeatures-page" class="lp-nav-link">Features</a>
-          <a href="#solutions-page" class="lp-nav-link">Solutions</a>
-          <a href="#pricing-page" class="lp-nav-link">Pricing</a>
-          <button class="lp-btn-primary" onclick="enterDashboard()">
-            Get Free Access
-            <span class="lp-btn-arrow">
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                <path d="M1 5H9M9 5L5 1M9 5L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </span>
-          </button>
-        </div>
-      </div>
-    </nav>
+    
 
     <!-- Testimonials Content -->
     <section class="test-section">
@@ -1093,24 +945,7 @@
     <canvas id="pricing-canvas"></canvas>
 
     <!-- Navbar -->
-    <nav class="lp-navbar pricing-nav">
-      <div class="lp-navbar-inner">
-        <div class="lp-logo" style="cursor: pointer;" onclick="window.location.reload()">VitaRoute</div>
-        <div class="lp-nav-group">
-          <a href="#keyfeatures-page" class="lp-nav-link">Features</a>
-          <a href="#solutions-page" class="lp-nav-link">Solutions</a>
-          <a href="#pricing-page" class="lp-nav-link">Pricing</a>
-          <button class="lp-btn-primary" onclick="enterDashboard()">
-            Get Free Access
-            <span class="lp-btn-arrow">
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                <path d="M1 5H9M9 5L5 1M9 5L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </span>
-          </button>
-        </div>
-      </div>
-    </nav>
+    
 
     <!-- Pricing Content -->
     <section class="pricing-section">
@@ -1183,24 +1018,7 @@
     <canvas id="cta-canvas"></canvas>
 
     <!-- Navbar -->
-    <nav class="lp-navbar cta-nav">
-      <div class="lp-navbar-inner">
-        <div class="lp-logo" style="cursor: pointer;" onclick="window.location.reload()">VitaRoute</div>
-        <div class="lp-nav-group">
-          <a href="#keyfeatures-page" class="lp-nav-link">Features</a>
-          <a href="#solutions-page" class="lp-nav-link">Solutions</a>
-          <a href="#pricing-page" class="lp-nav-link">Pricing</a>
-          <button class="lp-btn-primary" onclick="enterDashboard()">
-            Get Free Access
-            <span class="lp-btn-arrow">
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                <path d="M1 5H9M9 5L5 1M9 5L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </span>
-          </button>
-        </div>
-      </div>
-    </nav>
+    
 
     <!-- CTA Content -->
     <section class="cta-section">
