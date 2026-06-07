@@ -2633,49 +2633,63 @@ body.dashboard-active #solutions-page {
 }
 
 /* Right Column Cards */
+.sol-right {
+  perspective: 1500px;
+}
 .sol-card-grid {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 60px;
+  transform-style: preserve-3d;
 }
 .sol-card {
   position: relative;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px dashed rgba(255, 255, 255, 0.15);
-  padding: 40px;
-  border-radius: 2px;
-  backdrop-filter: blur(8px);
-  transition: all 0.3s ease;
+  background: rgba(20, 5, 5, 0.6);
+  border: 1px solid rgba(255, 60, 60, 0.2);
+  padding: 60px 40px;
+  border-radius: 12px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 30px 60px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05);
+  transform: rotateX(10deg) rotateY(-5deg) translateZ(0);
+  transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 .sol-card:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.3);
-  transform: translateX(-5px);
+  background: rgba(30, 8, 8, 0.7);
+  border-color: rgba(255, 60, 60, 0.5);
+  transform: rotateX(0deg) rotateY(0deg) translateZ(30px) translateY(-10px);
+  box-shadow: 0 40px 80px rgba(255,20,20,0.15), inset 0 1px 0 rgba(255,255,255,0.1);
 }
 .sol-card-tag {
   position: absolute;
   top: -12px;
-  left: 30px;
-  background: #3b82f6;
+  left: 40px;
+  background: #ff3333;
   color: #fff;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 2px;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 6px 14px;
+  border-radius: 4px;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
+  box-shadow: 0 4px 12px rgba(255,50,50,0.4);
 }
 .sol-card-title {
-  font-size: 32px;
-  font-weight: 700;
+  font-size: 38px;
+  font-weight: 800;
   color: #fff;
-  margin-bottom: 20px;
-  line-height: 1.2;
+  margin-bottom: 24px;
+  line-height: 1.1;
+  letter-spacing: -0.5px;
 }
 .sol-card-desc {
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.6);
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.65);
   line-height: 1.6;
+  max-width: 90%;
 }
 .sol-card-icon-box {
   position: absolute;
