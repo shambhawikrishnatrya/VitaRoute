@@ -784,6 +784,81 @@
   </div>
 
   <!-- ========================================
+       EIGHTH PAGE: Solutions Section
+       ======================================== -->
+  <div id="solutions-page">
+    <canvas id="solutions-canvas"></canvas>
+
+    <!-- Navbar -->
+    <nav class="lp-navbar sol-nav">
+      <div class="lp-navbar-inner">
+        <div class="lp-logo">VitaRoute</div>
+        <div class="lp-nav-group">
+          <a href="#features" class="lp-nav-link">Features</a>
+          <a href="#solutions" class="lp-nav-link">Solutions</a>
+          <a href="#pricing" class="lp-nav-link">Pricing</a>
+          <button class="lp-btn-primary" onclick="enterDashboard()">
+            Get Free Access
+            <span class="lp-btn-arrow">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                <path d="M1 5H9M9 5L5 1M9 5L5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Solutions Content -->
+    <section class="sol-section">
+      <div class="sol-container">
+        <div class="sol-content">
+          <!-- Left Column -->
+          <div class="sol-left">
+            <span class="sol-label">SOLUTIONS</span>
+            <h2 class="sol-headline">Designed for every<br>emergency service.</h2>
+            <p class="sol-desc">VitaRoute delivers tailored solutions for dispatchers, paramedics, hospitals, and fleet managers.</p>
+          </div>
+
+          <!-- Right Column (Cards) -->
+          <div class="sol-right">
+            <div class="sol-card-grid">
+              
+              <div class="sol-card">
+                <h3 class="sol-card-title">Hospital Coordination</h3>
+                <p class="sol-card-desc">Real-time ETA sharing and automatic alerts so hospitals can prepare beds, staff, and equipment before arrival.</p>
+              </div>
+
+              <div class="sol-card">
+                <span class="sol-card-tag">City Integration</span>
+                <h3 class="sol-card-title">Advanced Traffic Control</h3>
+                <div class="sol-card-icon-box">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="6" height="6" rx="1"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                </div>
+                <p class="sol-card-desc">Integration with smart traffic systems to create green-light corridors for ambulances during critical responses.</p>
+              </div>
+
+              <div class="sol-card">
+                <h3 class="sol-card-title">Emergency Dispatch</h3>
+                <div class="sol-card-icon-box">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                </div>
+                <p class="sol-card-desc">We instantly assign the nearest and most suitable ambulance based on location, capability, and live traffic.</p>
+              </div>
+
+              <div class="sol-card">
+                <h3 class="sol-card-title">Fleet Management</h3>
+                <p class="sol-card-desc">Comprehensive tools to manage your entire ambulance fleet — availability, maintenance alerts, performance analytics, and crew scheduling.</p>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ========================================
        SECOND PAGE: Hero + Command Center Dashboard
        ======================================== -->
   <div id="dashboard-view" style="display: none;">

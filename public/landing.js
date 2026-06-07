@@ -932,6 +932,128 @@
   };
 })();
 
+// ─── SOLUTIONS PAGE 3D SCENE (8th Page) ────────────────────────────────────
+(function () {
+  'use strict';
+  var canvas = document.getElementById('solutions-canvas');
+  if (!canvas || typeof THREE === 'undefined') return;
+
+  var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.0;
+
+  var scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0d0202);
+  scene.fog = new THREE.FogExp2(0x0d0202, 0.035);
+
+  var camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.set(0, 1, 15);
+
+  // Lighting
+  scene.add(new THREE.AmbientLight(0x2a0a0a, 0.5));
+
+  var redLight1 = new THREE.PointLight(0xff0000, 3.0, 25);
+  redLight1.position.set(-5, 5, 8);
+  scene.add(redLight1);
+
+  var redLight2 = new THREE.PointLight(0xff3300, 2.5, 20);
+  redLight2.position.set(5, -2, 6);
+  scene.add(redLight2);
+
+  var orangeLight = new THREE.PointLight(0xff6b35, 2.0, 22);
+  orangeLight.position.set(0, 2, 10);
+  scene.add(orangeLight);
+
+  // Abstract Wave Particles
+  var count = 200;
+  var geo = new THREE.BufferGeometry();
+  var pos = new Float32Array(count * 3);
+  var phases = new Float32Array(count);
+  for (var i = 0; i < count; i++) {
+    pos[i*3]   = (Math.random()-0.5) * 40;
+    pos[i*3+1] = (Math.random()-0.5) * 30;
+    pos[i*3+2] = (Math.random()-0.5) * 20 - 5;
+    phases[i] = Math.random() * Math.PI * 2;
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('phase', new THREE.BufferAttribute(phases, 1));
+  
+  var mat = new THREE.PointsMaterial({
+    color: 0xff3333, size: 0.12, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending
+  });
+  var pts = new THREE.Points(geo, mat);
+  scene.add(pts);
+
+  // Flowing background ribbons
+  var ribbonMat = new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.05, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
+  var ribbons = [];
+  for (var j = 0; j < 5; j++) {
+    var rgeo = new THREE.PlaneGeometry(30, 2, 20, 1);
+    var rmesh = new THREE.Mesh(rgeo, ribbonMat);
+    rmesh.position.y = (Math.random() - 0.5) * 15;
+    rmesh.position.z = -10 - Math.random() * 5;
+    rmesh.rotation.x = Math.random() * Math.PI;
+    scene.add(rmesh);
+    ribbons.push({ mesh: rmesh, phase: Math.random() * Math.PI * 2, speed: 0.5 + Math.random() * 0.5 });
+  }
+
+  // Mouse
+  var mx = 0, my = 0;
+  document.addEventListener('mousemove', function (e) {
+    mx = (e.clientX / window.innerWidth - 0.5) * 2;
+    my = (e.clientY / window.innerHeight - 0.5) * 2;
+  });
+
+  function onResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  }
+  window.addEventListener('resize', onResize);
+
+  var animId = null;
+  var t0 = performance.now();
+  function animate() {
+    var t = (performance.now() - t0) * 0.001;
+    camera.position.x += (mx * 2 - camera.position.x) * 0.02;
+    camera.position.y += (-my * 1.5 + 1 - camera.position.y) * 0.02;
+    camera.lookAt(0, 0, -5);
+
+    var positions = pts.geometry.attributes.position.array;
+    var ph = pts.geometry.attributes.phase.array;
+    for (var i = 0; i < count; i++) {
+      positions[i*3+1] += Math.sin(t * 1.5 + ph[i]) * 0.005;
+      positions[i*3] += Math.cos(t * 1.0 + ph[i]) * 0.003;
+    }
+    pts.geometry.attributes.position.needsUpdate = true;
+
+    ribbons.forEach(function(r) {
+      var rpos = r.mesh.geometry.attributes.position.array;
+      for (var k = 0; k <= 20; k++) {
+        rpos[k*3+1] = Math.sin(t * r.speed + r.phase + k * 0.5) * 2;
+        rpos[(k+21)*3+1] = Math.sin(t * r.speed + r.phase + k * 0.5) * 2 - 2;
+      }
+      r.mesh.geometry.attributes.position.needsUpdate = true;
+    });
+
+    redLight1.position.x = -5 + Math.sin(t * 0.4) * 4;
+    redLight2.position.z = 6 + Math.cos(t * 0.3) * 4;
+    orangeLight.intensity = 2.0 + Math.sin(t * 0.5) * 0.5;
+
+    renderer.render(scene, camera);
+    animId = requestAnimationFrame(animate);
+  }
+  animate();
+
+  window._stopSolutionsScene = function () {
+    if (animId) { cancelAnimationFrame(animId); animId = null; }
+    window.removeEventListener('resize', onResize);
+    renderer.dispose();
+  };
+})();
+
 // ─── Navigation State ─────────────────────────────────────────────────────────
 var currentPage = 'landing'; // 'landing', 'partners', 'dashboard'
 var isTransitioning = false;
@@ -948,6 +1070,7 @@ function enterDashboard() {
   if (window._stopKeyFeaturesScene) window._stopKeyFeaturesScene();
   if (window._stopRouteScene) window._stopRouteScene();
   if (window._stopDispatcherScene) window._stopDispatcherScene();
+  if (window._stopSolutionsScene) window._stopSolutionsScene();
 
   var landing = document.getElementById('landing-page');
   var partners = document.getElementById('partners-page');
@@ -955,6 +1078,7 @@ function enterDashboard() {
   var keyfeatures = document.getElementById('keyfeatures-page');
   var routepage = document.getElementById('route-page');
   var dispatcherpage = document.getElementById('dispatcher-page');
+  var solutionspage = document.getElementById('solutions-page');
   var dashboard = document.getElementById('dashboard-view');
 
   // Hide all pages, show dashboard
@@ -964,6 +1088,7 @@ function enterDashboard() {
   if (keyfeatures) keyfeatures.style.display = 'none';
   if (routepage) routepage.style.display = 'none';
   if (dispatcherpage) dispatcherpage.style.display = 'none';
+  if (solutionspage) solutionspage.style.display = 'none';
   if (dashboard) dashboard.style.display = 'block';
 
   // Apply dashboard body class (allows scrolling)
