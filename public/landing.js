@@ -1711,6 +1711,15 @@ function proceedToDashboard() {
   }
 }
 
+// Check if returning from video demo
+document.addEventListener("DOMContentLoaded", function() {
+  if (sessionStorage.getItem('returnToDashboard') === 'true') {
+    sessionStorage.removeItem('returnToDashboard');
+    // Call enterDashboard but delay slightly to ensure DOM is ready
+    setTimeout(enterDashboard, 50);
+  }
+});
+
 // ─── 3D SCROLL MOTION OBSERVER ────────────────────────────────────────────────
 (function() {
   var observer = new IntersectionObserver(function(entries) {

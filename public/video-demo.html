@@ -41,14 +41,19 @@
       color: #fff;
     }
     .back-btn {
-      color: var(--text-muted);
+      color: #fff;
       text-decoration: none;
       font-size: 14px;
-      font-weight: 500;
-      transition: color 0.2s;
+      font-weight: 600;
+      padding: 10px 20px;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      transition: all 0.2s;
+      background: rgba(255,255,255,0.05);
     }
     .back-btn:hover {
-      color: #fff;
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.4);
     }
     main {
       flex: 1;
@@ -122,7 +127,7 @@
 
   <nav>
     <a href="index.html" class="logo">VitaRoute</a>
-    <a href="index.html" class="back-btn">← Back to Command Center</a>
+    <a href="#" class="back-btn" onclick="sessionStorage.setItem('returnToDashboard', 'true'); window.location.href='index.html'; return false;">← Back to Command Center</a>
   </nav>
 
   <main>
