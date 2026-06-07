@@ -3172,20 +3172,7 @@ body.dashboard-active #pricing-page {
   border: 2px solid #3b82f6;
   box-shadow: 0 0 30px rgba(59, 130, 246, 0.15);
 }
-.pricing-enterprise::after {
-  content: 'Enterprise Plan Card';
-  position: absolute;
-  bottom: -35px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #3b82f6;
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 6px 12px;
-  border-radius: 4px;
-  white-space: nowrap;
-}
+
 
 /* Buttons */
 .pricing-btn-dark {
