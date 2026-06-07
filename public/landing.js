@@ -942,68 +942,133 @@
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.0;
+  renderer.toneMappingExposure = 1.15;
 
   var scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x0d0202);
-  scene.fog = new THREE.FogExp2(0x0d0202, 0.035);
 
-  var camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
-  camera.position.set(0, 1, 15);
+  // Gradient background (peach → pink → rose)
+  var bgCanvas = document.createElement('canvas');
+  bgCanvas.width = 4;
+  bgCanvas.height = 512;
+  var bgCtx = bgCanvas.getContext('2d');
+  var grad = bgCtx.createLinearGradient(0, 0, 0, 512);
+  grad.addColorStop(0.0, '#ffe0d0');
+  grad.addColorStop(0.3, '#ffc8b8');
+  grad.addColorStop(0.6, '#f4a09a');
+  grad.addColorStop(1.0, '#e07070');
+  bgCtx.fillStyle = grad;
+  bgCtx.fillRect(0, 0, 4, 512);
+  scene.background = new THREE.CanvasTexture(bgCanvas);
+
+  // Depth fog
+  scene.fog = new THREE.FogExp2(0xf0b8a8, 0.028);
+
+  var camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 120);
+  camera.position.set(0, 0, 18);
 
   // Lighting
-  scene.add(new THREE.AmbientLight(0x2a0a0a, 0.5));
+  scene.add(new THREE.AmbientLight(0xffd8cc, 0.5));
 
-  var redLight1 = new THREE.PointLight(0xff0000, 3.0, 25);
-  redLight1.position.set(-5, 5, 8);
-  scene.add(redLight1);
+  var dirLight = new THREE.DirectionalLight(0xffffff, 1.1);
+  dirLight.position.set(6, 10, 12);
+  scene.add(dirLight);
 
-  var redLight2 = new THREE.PointLight(0xff3300, 2.5, 20);
-  redLight2.position.set(5, -2, 6);
-  scene.add(redLight2);
+  var warmLight = new THREE.PointLight(0xff5544, 2.2, 35);
+  warmLight.position.set(-5, 3, 8);
+  scene.add(warmLight);
 
-  var orangeLight = new THREE.PointLight(0xff6b35, 2.0, 22);
-  orangeLight.position.set(0, 2, 10);
-  scene.add(orangeLight);
+  var coolLight = new THREE.PointLight(0xffaa88, 1.4, 28);
+  coolLight.position.set(5, -2, 5);
+  scene.add(coolLight);
 
-  // Abstract Wave Particles
-  var count = 200;
-  var geo = new THREE.BufferGeometry();
-  var pos = new Float32Array(count * 3);
-  var phases = new Float32Array(count);
-  for (var i = 0; i < count; i++) {
-    pos[i*3]   = (Math.random()-0.5) * 40;
-    pos[i*3+1] = (Math.random()-0.5) * 30;
-    pos[i*3+2] = (Math.random()-0.5) * 20 - 5;
-    phases[i] = Math.random() * Math.PI * 2;
+  var backLight = new THREE.PointLight(0xcc2244, 1.8, 30);
+  backLight.position.set(0, 5, -10);
+  scene.add(backLight);
+
+  // Feather geometry helper
+  function makeFeatherGeo() {
+    var w = 0.14 + Math.random() * 0.1;
+    var h = 1.2 + Math.random() * 2.0;
+    return new THREE.PlaneGeometry(w, h, 1, 6);
   }
-  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  geo.setAttribute('phase', new THREE.BufferAttribute(phases, 1));
-  
-  var mat = new THREE.PointsMaterial({
-    color: 0xff3333, size: 0.12, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending
+
+  // Color palette (reds → pinks → crimsons)
+  var palette = [
+    0xbb1122, 0xcc2233, 0xdd3344, 0xaa1828,
+    0xcc1133, 0xe04050, 0x991122, 0xdd2244,
+    0xc82838, 0xb02030, 0xe85060, 0xd04858
+  ];
+
+  function pickColor() {
+    return palette[Math.floor(Math.random() * palette.length)];
+  }
+
+  // Create feather layers (parallax depth groups)
+  var layers = [];
+
+  var layerConfigs = [
+    { count: 50,  zMin: -6,  zMax:  0,  spread: 24, scaleMin: 0.6, scaleMax: 1.5, opacity: 0.9,  fogDensity: 0.028 },
+    { count: 60,  zMin: -16, zMax: -6,  spread: 34, scaleMin: 0.4, scaleMax: 1.1, opacity: 0.65, fogDensity: 0.032 },
+    { count: 50,  zMin: -30, zMax: -16, spread: 44, scaleMin: 0.3, scaleMax: 0.8, opacity: 0.35, fogDensity: 0.04  }
+  ];
+
+  var dummy = new THREE.Object3D();
+
+  layerConfigs.forEach(function (cfg) {
+    var geo = makeFeatherGeo();
+    var mat = new THREE.MeshStandardMaterial({
+      color: pickColor(),
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: cfg.opacity,
+      roughness: 0.55,
+      metalness: 0.08,
+      emissive: new THREE.Color(0x220000),
+      emissiveIntensity: 0.15
+    });
+
+    var mesh = new THREE.InstancedMesh(geo, mat, cfg.count);
+    mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+
+    var items = [];
+    for (var i = 0; i < cfg.count; i++) {
+      var x = (Math.random() - 0.5) * cfg.spread;
+      var y = (Math.random() - 0.5) * cfg.spread * 0.65;
+      var z = cfg.zMin + Math.random() * (cfg.zMax - cfg.zMin);
+      var rx = Math.random() * Math.PI;
+      var ry = Math.random() * Math.PI;
+      var rz = Math.random() * Math.PI;
+      var s  = cfg.scaleMin + Math.random() * (cfg.scaleMax - cfg.scaleMin);
+
+      items.push({
+        x: x, y: y, z: z,
+        rx: rx, ry: ry, rz: rz,
+        s: s,
+        rotSpeed:  (Math.random() - 0.5) * 0.12,
+        floatPhase: Math.random() * Math.PI * 2,
+        floatAmp:   0.08 + Math.random() * 0.18
+      });
+
+      // Set initial matrix
+      dummy.position.set(x, y, z);
+      dummy.rotation.set(rx, ry, rz);
+      dummy.scale.setScalar(s);
+      dummy.updateMatrix();
+      mesh.setMatrixAt(i, dummy.matrix);
+    }
+
+    mesh.instanceMatrix.needsUpdate = true;
+    scene.add(mesh);
+    layers.push({ mesh: mesh, items: items, cfg: cfg });
   });
-  var pts = new THREE.Points(geo, mat);
-  scene.add(pts);
 
-  // Flowing background ribbons
-  var ribbonMat = new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.05, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
-  var ribbons = [];
-  for (var j = 0; j < 5; j++) {
-    var rgeo = new THREE.PlaneGeometry(30, 2, 20, 1);
-    var rmesh = new THREE.Mesh(rgeo, ribbonMat);
-    rmesh.position.y = (Math.random() - 0.5) * 15;
-    rmesh.position.z = -10 - Math.random() * 5;
-    rmesh.rotation.x = Math.random() * Math.PI;
-    scene.add(rmesh);
-    ribbons.push({ mesh: rmesh, phase: Math.random() * Math.PI * 2, speed: 0.5 + Math.random() * 0.5 });
-  }
+  // Mouse tracking
+  var mouseX = 0, mouseY = 0;
+  var targetCamX = 0, targetCamY = 0;
 
-  // Mouse
-  var mx = 0, my = 0;
   document.addEventListener('mousemove', function (e) {
-    mx = (e.clientX / window.innerWidth - 0.5) * 2;
-    my = (e.clientY / window.innerHeight - 0.5) * 2;
+    mouseX = (e.clientX / window.innerWidth  - 0.5) * 2;
+    mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
   });
 
   function onResize() {
@@ -1014,37 +1079,49 @@
   window.addEventListener('resize', onResize);
 
   var animId = null;
-  var t0 = performance.now();
+  var clock = new THREE.Clock();
+
   function animate() {
-    var t = (performance.now() - t0) * 0.001;
-    camera.position.x += (mx * 2 - camera.position.x) * 0.02;
-    camera.position.y += (-my * 1.5 + 1 - camera.position.y) * 0.02;
-    camera.lookAt(0, 0, -5);
+    animId = requestAnimationFrame(animate);
+    var delta = clock.getDelta();
+    var time  = clock.getElapsedTime();
 
-    var positions = pts.geometry.attributes.position.array;
-    var ph = pts.geometry.attributes.phase.array;
-    for (var i = 0; i < count; i++) {
-      positions[i*3+1] += Math.sin(t * 1.5 + ph[i]) * 0.005;
-      positions[i*3] += Math.cos(t * 1.0 + ph[i]) * 0.003;
-    }
-    pts.geometry.attributes.position.needsUpdate = true;
+    // Camera parallax
+    targetCamX = mouseX * 2.5;
+    targetCamY = mouseY * 1.5;
+    camera.position.x += (targetCamX - camera.position.x) * 0.05;
+    camera.position.y += (-targetCamY - camera.position.y) * 0.05;
+    camera.lookAt(0, 0, -10);
 
-    ribbons.forEach(function(r) {
-      var rpos = r.mesh.geometry.attributes.position.array;
-      for (var k = 0; k <= 20; k++) {
-        rpos[k*3+1] = Math.sin(t * r.speed + r.phase + k * 0.5) * 2;
-        rpos[(k+21)*3+1] = Math.sin(t * r.speed + r.phase + k * 0.5) * 2 - 2;
+    // Dynamic lights
+    warmLight.position.x = Math.sin(time * 0.4) * 6;
+    coolLight.position.y = Math.cos(time * 0.3) * 4 - 2;
+
+    // Animate instances
+    layers.forEach(function (layer) {
+      var items = layer.items;
+      var mesh = layer.mesh;
+      for (var i = 0; i < items.length; i++) {
+        var it = items[i];
+        
+        it.rx += it.rotSpeed * delta;
+        it.ry += it.rotSpeed * delta * 0.7;
+        
+        var dy = Math.sin(time * 1.2 + it.floatPhase) * it.floatAmp;
+
+        dummy.position.set(it.x, it.y + dy, it.z);
+        dummy.rotation.set(it.rx, it.ry, it.rz);
+        dummy.scale.setScalar(it.s);
+        dummy.updateMatrix();
+        mesh.setMatrixAt(i, dummy.matrix);
       }
-      r.mesh.geometry.attributes.position.needsUpdate = true;
+      mesh.instanceMatrix.needsUpdate = true;
     });
 
-    redLight1.position.x = -5 + Math.sin(t * 0.4) * 4;
-    redLight2.position.z = 6 + Math.cos(t * 0.3) * 4;
-    orangeLight.intensity = 2.0 + Math.sin(t * 0.5) * 0.5;
-
     renderer.render(scene, camera);
-    animId = requestAnimationFrame(animate);
   }
+
+  clock.start();
   animate();
 
   window._stopSolutionsScene = function () {
