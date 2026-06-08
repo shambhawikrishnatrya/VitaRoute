@@ -1609,6 +1609,72 @@ function showLoginModal() {
   document.getElementById('login-modal-overlay').style.display = 'flex';
 }
 
+function toggleAuthView(view) {
+  if (view === 'register') {
+    document.getElementById('login-view').style.display = 'none';
+    document.getElementById('register-view').style.display = 'block';
+  } else {
+    document.getElementById('register-view').style.display = 'none';
+    document.getElementById('login-view').style.display = 'block';
+  }
+}
+
+async function submitRegister() {
+  const emailEl = document.getElementById('register-email');
+  const passwordEl = document.getElementById('register-password');
+  const errorEl = document.getElementById('register-error');
+
+  const email = emailEl ? emailEl.value.trim() : '';
+  const password = passwordEl ? passwordEl.value.trim() : '';
+
+  if (!email || !password) {
+    if (errorEl) {
+      errorEl.innerText = "Please enter email and password.";
+      errorEl.style.display = 'block';
+    }
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    
+    if (data.success) {
+      // Auto-login the user after registration
+      document.getElementById('login-email').value = email;
+      document.getElementById('login-password').value = password;
+      await submitLogin();
+    } else {
+      if (errorEl) {
+        errorEl.innerText = data.error || "Registration failed";
+        errorEl.style.display = 'block';
+      }
+    }
+  } catch (err) {
+    if (errorEl) {
+      errorEl.innerText = "Connection error. Try again.";
+      errorEl.style.display = 'block';
+    }
+  }
+}
+
+function populateUserProfile(user) {
+  if (!user) return;
+  const emailEl = document.getElementById('profile-email');
+  const roleEl = document.getElementById('profile-role');
+  const planEl = document.getElementById('profile-plan');
+  const initialEl = document.getElementById('profile-initial');
+
+  if (emailEl) emailEl.innerText = user.email;
+  if (roleEl) roleEl.innerText = user.role.charAt(0).toUpperCase() + user.role.slice(1);
+  if (planEl) planEl.innerText = user.plan || 'Free';
+  if (initialEl) initialEl.innerText = user.email.charAt(0).toUpperCase();
+}
+
 async function submitLogin() {
   const emailEl = document.getElementById('login-email');
   const passwordEl = document.getElementById('login-password');
@@ -1635,6 +1701,8 @@ async function submitLogin() {
     
     if (data.success) {
       localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      populateUserProfile(data.user);
       closeLoginModal();
       isTransitioning = true;
       proceedToDashboard(); 
@@ -1654,6 +1722,7 @@ async function submitLogin() {
 
 function logout() {
   localStorage.removeItem('token');
+  localStorage.removeItem('user');
   window.location.reload();
 }
 
@@ -1725,6 +1794,11 @@ function enterDashboard() {
     showLoginModal();
     return;
   }
+
+  try {
+    const user = JSON.parse(localStorage.getItem('user'));
+    populateUserProfile(user);
+  } catch(e) {}
   
   isTransitioning = true;
   proceedToDashboard();

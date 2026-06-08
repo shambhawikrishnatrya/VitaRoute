@@ -45,27 +45,56 @@
        ======================================== -->
   <div id="login-modal-overlay" style="display: none;">
     <div class="login-modal">
-      <div class="login-header">
-        <h2 class="login-title">Premium Feature Locked</h2>
-        <p class="login-subtitle">Log in to VitaRoute to access this tool.</p>
-      </div>
-      <div class="login-body">
-        <div class="input-group">
-          <label>Email</label>
-          <input type="email" id="login-email" placeholder="admin@vitaroute.com">
+      
+      <!-- Login View -->
+      <div id="login-view">
+        <div class="login-header">
+          <h2 class="login-title">Premium Feature Locked</h2>
+          <p class="login-subtitle">Log in to VitaRoute to access this tool.</p>
         </div>
-        <div class="input-group">
-          <label>Password</label>
-          <input type="password" id="login-password" placeholder="••••••••">
+        <div class="login-body">
+          <div class="input-group">
+            <label>Email</label>
+            <input type="email" id="login-email" placeholder="admin@vitaroute.com">
+          </div>
+          <div class="input-group">
+            <label>Password</label>
+            <input type="password" id="login-password" placeholder="••••••••">
+          </div>
+          <div id="login-error" style="color: #ef4444; font-size: 13px; margin-bottom: 12px; display: none;">Invalid credentials</div>
+          <button class="btn-submit" onclick="submitLogin()">Authenticate</button>
+          <button class="btn-back" onclick="closeLoginModal()">Cancel</button>
         </div>
-        <div id="login-error" style="color: #ef4444; font-size: 13px; margin-bottom: 12px; display: none;">Invalid credentials</div>
-        <button class="btn-submit" onclick="submitLogin()">Authenticate</button>
-        <button class="btn-back" onclick="closeLoginModal()">Cancel</button>
+        <div class="login-footer">
+          Don't have an account? <a href="javascript:void(0)" onclick="toggleAuthView('register')" style="color: #3b82f6;">Sign Up</a><br><br>
+          Hint: Use <strong>admin@vitaroute.com</strong> / <strong>password</strong>
+        </div>
       </div>
-      <div class="login-footer">
-        Don't have an account? <a href="#pricing-page" onclick="closeLoginModal()" style="color: #3b82f6;">Sign Up</a><br><br>
-        Hint: Use <strong>admin@vitaroute.com</strong> / <strong>password</strong>
+
+      <!-- Register View -->
+      <div id="register-view" style="display: none;">
+        <div class="login-header">
+          <h2 class="login-title">Create Account</h2>
+          <p class="login-subtitle">Join VitaRoute to access the Command Center.</p>
+        </div>
+        <div class="login-body">
+          <div class="input-group">
+            <label>Email</label>
+            <input type="email" id="register-email" placeholder="your@email.com">
+          </div>
+          <div class="input-group">
+            <label>Password</label>
+            <input type="password" id="register-password" placeholder="••••••••">
+          </div>
+          <div id="register-error" style="color: #ef4444; font-size: 13px; margin-bottom: 12px; display: none;">Error</div>
+          <button class="btn-submit" onclick="submitRegister()">Sign Up</button>
+          <button class="btn-back" onclick="closeLoginModal()">Cancel</button>
+        </div>
+        <div class="login-footer">
+          Already have an account? <a href="javascript:void(0)" onclick="toggleAuthView('login')" style="color: #3b82f6;">Log In</a>
+        </div>
       </div>
+
     </div>
   </div>
 
@@ -1262,9 +1291,9 @@
           <button class="vr-modal-close" onclick="closeModal(null, 'vr-profile-modal')">&times;</button>
         </div>
         <div class="vr-modal-body" style="text-align: center;">
-          <div style="width: 80px; height: 80px; background: #3b82f6; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 32px; font-weight: bold; margin: 0 auto 20px;">A</div>
-          <h4 style="font-size: 20px; margin-bottom: 5px;">Admin User</h4>
-          <p style="color: #94a3b8; margin-bottom: 24px;">City General Hospital • Dispatcher</p>
+          <div style="width: 80px; height: 80px; background: #3b82f6; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 32px; font-weight: bold; margin: 0 auto 20px;" id="profile-initial">U</div>
+          <h4 style="font-size: 20px; margin-bottom: 5px;"><span id="profile-email">User</span></h4>
+          <p style="color: #94a3b8; margin-bottom: 24px;">Role: <strong id="profile-role" style="color:#fff;">User</strong> • Plan: <strong id="profile-plan" style="color:#10b981;">Free</strong></p>
           <button class="lp-btn-primary" style="width: 100%; padding: 12px; margin-bottom: 12px;">Edit Profile</button>
           <button class="lp-btn-outline" style="width: 100%; padding: 12px; border-color: #ef4444; color: #ef4444;" onclick="logout()">Sign Out</button>
         </div>

@@ -25,13 +25,22 @@ module.exports = async function handler(req, res) {
       id: Date.now(),
       email,
       password: hashedPassword,
-      role: role || 'admin'
+      role: role || 'user',
+      plan: 'Free'
     };
     
     users.push(newUser);
 
     // In a real database, we would save the user here
-    return res.status(200).json({ message: 'User registered successfully', success: true });
+    return res.status(200).json({ 
+      message: 'User registered successfully', 
+      success: true,
+      user: {
+        email: newUser.email,
+        role: newUser.role,
+        plan: newUser.plan
+      }
+    });
     
   } catch (error) {
     console.error('Registration error:', error);

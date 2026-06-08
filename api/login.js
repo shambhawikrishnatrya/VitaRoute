@@ -6,7 +6,8 @@ const DEFAULT_USER = {
   email: 'admin@vitaroute.com',
   // bcrypt hash for "password"
   password: '$2b$10$U4oNDSFzc/XPh6uwyCMTEO1gjw3gu9Xn4dtUIeel.ZdTZ8puqg1YC',
-  role: 'admin'
+  role: 'admin',
+  plan: 'Enterprise'
 };
 
 const JWT_SECRET = process.env.JWT_SECRET || 'vitaroute-super-secret-key';
@@ -30,6 +31,15 @@ module.exports = async function handler(req, res) {
     let userToAuth = null;
     if (email === DEFAULT_USER.email) {
       userToAuth = DEFAULT_USER;
+    } else {
+      // For Vercel Serverless Demo without a DB: 
+      // Treat any other login attempt as a standard user who "just registered"
+      userToAuth = {
+        email: email,
+        password: await bcrypt.hash(password, 10), // Dynamically hash their input so the compare below succeeds
+        role: 'user',
+        plan: 'Free'
+      };
     }
 
     if (!userToAuth) {
@@ -52,7 +62,7 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({ 
       success: true,
       token, 
-      user: { email: userToAuth.email, role: userToAuth.role } 
+      user: { email: userToAuth.email, role: userToAuth.role, plan: userToAuth.plan } 
     });
 
   } catch (error) {
