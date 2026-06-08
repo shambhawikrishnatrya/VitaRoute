@@ -26,8 +26,12 @@
         <a href="#keyfeatures-page" class="lp-nav-link">Features</a>
         <a href="#solutions-page" class="lp-nav-link">Solutions</a>
         <a href="#pricing-page" class="lp-nav-link">Pricing</a>
-        <a href="javascript:void(0)" class="lp-nav-link" onclick="showLoginModal()" style="color: #3b82f6; font-weight: 600;">Log In</a>
-        <button class="lp-btn-primary" onclick="enterDashboard()">
+        <a href="javascript:void(0)" class="lp-nav-link" id="nav-login-btn" onclick="showLoginModal()" style="color: #3b82f6; font-weight: 600;">Log In</a>
+        <div id="nav-user-profile" style="display: none; align-items: center; gap: 12px;">
+          <div style="width: 32px; height: 32px; background: #3b82f6; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 14px; font-weight: bold; color: white;" id="nav-user-initial">U</div>
+          <a href="javascript:void(0)" class="lp-nav-link" onclick="enterDashboard()" style="color: #10b981; font-weight: 600;">My Dashboard</a>
+        </div>
+        <button class="lp-btn-primary" id="nav-cta-btn" onclick="enterDashboard()">
           Get Free Access
           <span class="lp-btn-arrow">
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none">

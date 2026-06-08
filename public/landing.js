@@ -1668,11 +1668,24 @@ function populateUserProfile(user) {
   const roleEl = document.getElementById('profile-role');
   const planEl = document.getElementById('profile-plan');
   const initialEl = document.getElementById('profile-initial');
+  
+  const navInitialEl = document.getElementById('nav-user-initial');
+  const navLoginBtn = document.getElementById('nav-login-btn');
+  const navUserProfile = document.getElementById('nav-user-profile');
+  const navCtaBtn = document.getElementById('nav-cta-btn');
+
+  const initial = user.email ? user.email.charAt(0).toUpperCase() : 'U';
 
   if (emailEl) emailEl.innerText = user.email;
   if (roleEl) roleEl.innerText = user.role.charAt(0).toUpperCase() + user.role.slice(1);
   if (planEl) planEl.innerText = user.plan || 'Free';
-  if (initialEl) initialEl.innerText = user.email.charAt(0).toUpperCase();
+  if (initialEl) initialEl.innerText = initial;
+
+  // Update Landing Page Navbar
+  if (navInitialEl) navInitialEl.innerText = initial;
+  if (navLoginBtn) navLoginBtn.style.display = 'none';
+  if (navUserProfile) navUserProfile.style.display = 'flex';
+  if (navCtaBtn) navCtaBtn.style.display = 'none'; // Hide "Get Free Access" if logged in
 }
 
 async function submitLogin() {
@@ -1869,6 +1882,15 @@ function proceedToDashboard() {
 
 // Check if returning from video demo or navigating from dashboard
 document.addEventListener("DOMContentLoaded", function() {
+  // Check auth state on load
+  try {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      populateUserProfile(user);
+    }
+  } catch(e) {}
+
   if (sessionStorage.getItem('returnToDashboard') === 'true') {
     sessionStorage.removeItem('returnToDashboard');
     // Call enterDashboard but delay slightly to ensure DOM is ready
