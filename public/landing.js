@@ -1863,6 +1863,10 @@ function proceedToDashboard() {
   if (ctapage) ctapage.style.display = 'none';
   if (dashboard) dashboard.style.display = 'block';
 
+  // Hide the secondary hero section so the user sees the actual dashboard immediately
+  var vrHero2 = document.querySelector('.vr-hero2');
+  if (vrHero2) vrHero2.style.display = 'none';
+
   // Apply dashboard body class (allows scrolling)
   document.body.classList.add('dashboard-active');
   currentPage = 'dashboard';
