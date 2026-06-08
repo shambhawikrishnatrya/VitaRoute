@@ -1610,16 +1610,18 @@ function showLoginModal() {
 }
 
 async function submitLogin() {
-  const usernameEl = document.getElementById('login-username');
+  const emailEl = document.getElementById('login-email');
   const passwordEl = document.getElementById('login-password');
   const errorEl = document.getElementById('login-error');
 
-  const username = usernameEl.value.trim();
-  const password = passwordEl.value.trim();
+  const email = emailEl ? emailEl.value.trim() : '';
+  const password = passwordEl ? passwordEl.value.trim() : '';
 
-  if (!username || !password) {
-    errorEl.innerText = "Please enter username and password.";
-    errorEl.style.display = 'block';
+  if (!email || !password) {
+    if (errorEl) {
+      errorEl.innerText = "Please enter email and password.";
+      errorEl.style.display = 'block';
+    }
     return;
   }
 
@@ -1627,26 +1629,45 @@ async function submitLogin() {
     const res = await fetch('/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
+      body: JSON.stringify({ email, password })
     });
     const data = await res.json();
     
     if (data.success) {
+      localStorage.setItem('token', data.token);
       closeLoginModal();
-      proceedToDashboard(); // Call the actual transition function
+      isTransitioning = true;
+      proceedToDashboard(); 
     } else {
-      errorEl.innerText = data.message || "Invalid credentials";
-      errorEl.style.display = 'block';
+      if (errorEl) {
+        errorEl.innerText = data.error || "Invalid credentials";
+        errorEl.style.display = 'block';
+      }
     }
   } catch (err) {
-    errorEl.innerText = "Connection error. Try again.";
-    errorEl.style.display = 'block';
+    if (errorEl) {
+      errorEl.innerText = "Connection error. Try again.";
+      errorEl.style.display = 'block';
+    }
   }
+}
+
+function logout() {
+  localStorage.removeItem('token');
+  window.location.reload();
 }
 
 // ─── Landing/Partners/Features → Dashboard Transition ─────────────────────────
 function enterDashboard() {
   if (isTransitioning) return;
+  
+  // Enforce JWT Auth
+  const token = localStorage.getItem('token');
+  if (!token) {
+    showLoginModal();
+    return;
+  }
+  
   isTransitioning = true;
   proceedToDashboard();
 }
