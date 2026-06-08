@@ -5,7 +5,7 @@ const bcrypt = require('bcrypt');
 const DEFAULT_USER = {
   email: 'admin@vitaroute.com',
   // bcrypt hash for "password"
-  password: '$2a$10$A6ZpQc2rG5.B/L4dYVj1X.Wn5aJvTqzWb.R0gC8FvQZ6E7H4p3qjC',
+  password: '$2b$10$U4oNDSFzc/XPh6uwyCMTEO1gjw3gu9Xn4dtUIeel.ZdTZ8puqg1YC',
   role: 'admin'
 };
 
