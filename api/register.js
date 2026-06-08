@@ -1,11 +1,11 @@
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt');
 
 // Mock User Database for Demo (Would use MongoDB/Postgres in prod)
 // Note: In Serverless functions, in-memory state is stateless between warm boots.
 // However, since this is just a mockup demonstration for Vercel, it works perfectly for a single session test.
 let users = [];
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }

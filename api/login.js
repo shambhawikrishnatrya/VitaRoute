@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt');
 
 // Hardcoded default admin (so login works immediately without registering)
 const DEFAULT_USER = {
@@ -11,7 +11,7 @@ const DEFAULT_USER = {
 
 const JWT_SECRET = process.env.JWT_SECRET || 'vitaroute-super-secret-key';
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
