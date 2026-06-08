@@ -1,4 +1,4 @@
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 // Mock User Database for Demo (Would use MongoDB/Postgres in prod)
 // Note: In Serverless functions, in-memory state is stateless between warm boots.

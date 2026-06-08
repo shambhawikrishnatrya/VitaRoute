@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 // Hardcoded default admin (so login works immediately without registering)
 const DEFAULT_USER = {

@@ -1655,8 +1655,9 @@ async function submitRegister() {
       }
     }
   } catch (err) {
+    console.error("submitRegister error:", err);
     if (errorEl) {
-      errorEl.innerText = "Connection error. Try again.";
+      errorEl.innerText = "Connection error. " + (err.message || "");
       errorEl.style.display = 'block';
     }
   }
@@ -1726,8 +1727,9 @@ async function submitLogin() {
       }
     }
   } catch (err) {
+    console.error("submitLogin error:", err);
     if (errorEl) {
-      errorEl.innerText = "Connection error. Try again.";
+      errorEl.innerText = "Connection error. " + (err.message || "");
       errorEl.style.display = 'block';
     }
   }
