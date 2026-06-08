@@ -1657,6 +1657,64 @@ function logout() {
   window.location.reload();
 }
 
+// ─── RAZORPAY INTEGRATION ─────────────────────────────────────────────────────
+window.payNow = async function(plan, amount) {
+  try {
+    // Show a loading state if possible, but for now we'll just fetch
+    const response = await fetch('/api/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount, plan })
+    });
+
+    if (!response.ok) {
+        throw new Error("Failed to create order");
+    }
+
+    const order = await response.json();
+
+    const options = {
+        key: "rzp_test_Sz57RZmZviuRVh",   // Fallback Test Key
+        amount: order.amount,
+        currency: "INR",
+        name: "VitaRoute",
+        description: `${plan} Plan`,
+        order_id: order.id,
+        handler: function (response) {
+            // In a production app, verify signature on backend here
+            if (window.toast) {
+                window.toast("Payment Successful! Welcome to " + plan);
+            } else {
+                alert("Payment Successful! Order ID: " + response.razorpay_order_id);
+            }
+        },
+        prefill: {
+            name: "VitaRoute User",
+            email: "admin@vitaroute.com",
+            contact: "9999999999"
+        },
+        theme: { color: "#3b82f6" }
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.on('payment.failed', function (response){
+        if (window.toast) {
+            window.toast("Payment Failed: " + response.error.description);
+        } else {
+            alert("Payment Failed: " + response.error.description);
+        }
+    });
+    rzp.open();
+  } catch (error) {
+    console.error(error);
+    if (window.toast) {
+        window.toast("Error initializing checkout. Please try again.");
+    } else {
+        alert("Error initializing checkout.");
+    }
+  }
+};
+
 // ─── Landing/Partners/Features → Dashboard Transition ─────────────────────────
 function enterDashboard() {
   if (isTransitioning) return;
