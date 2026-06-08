@@ -1172,7 +1172,7 @@
           <h2 class="vr-dash-title">VitaRoute</h2>
           <div class="vr-dash-tabs">
             <button class="vr-dash-tab active" data-tab="hospital" onclick="switchDashTab(this)">City General Hospital</button>
-            <button class="vr-dash-tab" data-tab="command" onclick="switchDashTab(this)">Command Center</button>
+            <button class="vr-dash-tab admin-only" data-tab="command" onclick="switchDashTab(this)">Command Center</button>
           </div>
         </div>
         <div class="vr-dash-header-right">
@@ -1220,7 +1220,10 @@
         <div class="vr-missions">
           <div class="vr-missions-header">
             <h3>Active Missions</h3>
-            <select class="vr-missions-filter"><option>All Missions</option></select>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <select class="vr-missions-filter"><option>All Missions</option></select>
+              <button class="lp-btn-primary admin-only" style="padding: 4px 10px; font-size: 12px;" onclick="alert('Dispatch functionality is simulated in demo.')">+ Dispatch</button>
+            </div>
           </div>
           <div class="vr-missions-list" id="vr-missions-list"></div>
           <div class="vr-missions-footer"><a href="#">View All Missions</a></div>
@@ -1244,11 +1247,11 @@
             </div>
           </div>
         </div>
-        <div class="vr-card vr-card-alerts">
+        <div class="vr-card vr-card-alerts admin-only">
           <div class="vr-card-head"><h4>Live Alerts</h4></div>
           <div class="vr-card-body vr-alerts-body" id="vr-alerts-list"></div>
         </div>
-        <div class="vr-card vr-card-vehicle">
+        <div class="vr-card vr-card-vehicle admin-only">
           <div class="vr-card-head"><h4>Vehicle Status</h4></div>
           <div class="vr-card-body vr-vehicle-body">
             <div class="vr-gauge-wrap"><svg class="vr-gauge" viewBox="0 0 120 120" id="vr-vehicle-gauge"></svg><div class="vr-gauge-center"><span class="vr-gauge-val" id="vr-vehicle-total">14</span><span class="vr-gauge-lbl">Total</span></div></div>

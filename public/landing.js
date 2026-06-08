@@ -1872,6 +1872,15 @@ function proceedToDashboard() {
   currentPage = 'dashboard';
   isTransitioning = false;
 
+  // Apply Role-Based Access
+  try {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      applyRoleBasedAccess(user);
+    }
+  } catch(e) {}
+
   // Scroll to top for dashboard
   window.scrollTo(0, 0);
 
@@ -1883,6 +1892,37 @@ function proceedToDashboard() {
         if (typeof window.resizeMap === 'function') window.resizeMap();
       }, 200);
     }, 100);
+  }
+}
+
+// ─── Role-Based Access Control ────────────────────────────────────────────────
+function applyRoleBasedAccess(user) {
+  if (!user) return;
+  const isAdmin = user.role === 'admin';
+  
+  // Find all elements meant only for admins
+  const adminElements = document.querySelectorAll('.admin-only');
+  
+  adminElements.forEach(el => {
+    if (isAdmin) {
+      // Restore default display based on element type (button vs div card)
+      if (el.tagName === 'BUTTON') {
+        el.style.display = 'inline-block';
+      } else {
+        el.style.display = 'block';
+      }
+    } else {
+      // Hide for standard users
+      el.style.display = 'none';
+    }
+  });
+
+  // Force non-admins to stay on "City General Hospital" tab
+  if (!isAdmin) {
+    const hospTab = document.querySelector('.vr-dash-tab[data-tab="hospital"]');
+    if (hospTab && typeof switchDashTab === 'function') {
+      switchDashTab(hospTab);
+    }
   }
 }
 
