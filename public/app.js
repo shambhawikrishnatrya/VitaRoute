@@ -104,7 +104,7 @@ function setupInteractiveDemo(demoMap, ambIcon, emgIcon) {
       let durationSeconds = 0;
       let distanceMeters = 0;
       try {
-        const osrmUrl = \`https://router.project-osrm.org/route/v1/driving/\${nearest.lng},\${nearest.lat};\${dest[1]},\${dest[0]}?overview=full&geometries=geojson\`;
+        const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${nearest.lng},${nearest.lat};${dest[1]},${dest[0]}?overview=full&geometries=geojson`;
         const osrmRes = await fetch(osrmUrl);
         const osrmData = await osrmRes.json();
         
@@ -131,7 +131,7 @@ function setupInteractiveDemo(demoMap, ambIcon, emgIcon) {
       const etaMin = Math.ceil(durationSeconds / 60);
       
       if (alertList) {
-        alertList.innerHTML = \`<div class="vr-alert-item"><div class="vr-alert-icon">🚑</div><div><div class="vr-alert-text">Dispatching \${nearest.id}</div><div class="vr-alert-loc">ETA: \${etaMin} min (\${distKm} km)</div></div></div>\` + alertList.innerHTML;
+        alertList.innerHTML = `<div class="vr-alert-item"><div class="vr-alert-icon">🚑</div><div><div class="vr-alert-text">Dispatching ${nearest.id}</div><div class="vr-alert-loc">ETA: ${etaMin} min (${distKm} km)</div></div></div>` + alertList.innerHTML;
       }
 
       isDispatching = true;
