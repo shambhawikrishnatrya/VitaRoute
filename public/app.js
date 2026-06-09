@@ -92,35 +92,87 @@ function setupInteractiveDemo(demoMap, ambIcon, emgIcon) {
       alertList.innerHTML = `<div class="vr-alert-item"><div class="vr-alert-icon">⚠</div><div><div class="vr-alert-text">Incident Reported!</div><div class="vr-alert-loc">Finding nearest unit...</div></div></div>` + alertList.innerHTML;
     }
 
-    setTimeout(function() {
+    setTimeout(async function() {
       let nearest = null, minDist = Infinity;
       Object.values(ambulances).forEach(a => {
         const d = demoMap.distance([a.lat, a.lng], dest);
         if (d < minDist) { minDist = d; nearest = a; }
       });
 
-      const routeCoords = [ [nearest.lat, nearest.lng], [nearest.lat + (dest[0]-nearest.lat)*0.5, nearest.lng], dest ];
+      // Calculate Real Route using OSRM API
+      let routeCoords = [];
+      let durationSeconds = 0;
+      let distanceMeters = 0;
+      try {
+        const osrmUrl = \`https://router.project-osrm.org/route/v1/driving/\${nearest.lng},\${nearest.lat};\${dest[1]},\${dest[0]}?overview=full&geometries=geojson\`;
+        const osrmRes = await fetch(osrmUrl);
+        const osrmData = await osrmRes.json();
+        
+        if (osrmData.routes && osrmData.routes.length > 0) {
+          // OSRM returns [lng, lat] pairs, Leaflet needs [lat, lng]
+          routeCoords = osrmData.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+          durationSeconds = osrmData.routes[0].duration;
+          distanceMeters = osrmData.routes[0].distance;
+        }
+      } catch (err) {
+        console.error("OSRM Routing failed, falling back to straight line:", err);
+      }
+
+      // Fallback if OSRM fails
+      if (routeCoords.length === 0) {
+        routeCoords = [ [nearest.lat, nearest.lng], [nearest.lat + (dest[0]-nearest.lat)*0.5, nearest.lng], dest ];
+        durationSeconds = 60; // Mock 60 seconds
+        distanceMeters = minDist;
+      }
+
       currentRouteLine = L.polyline(routeCoords, { color: '#10b981', weight: 4, opacity: 0.8, dashArray: '10, 10' }).addTo(demoMap);
       
-      const distKm = (minDist / 1000).toFixed(1);
+      const distKm = (distanceMeters / 1000).toFixed(1);
+      const etaMin = Math.ceil(durationSeconds / 60);
+      
       if (alertList) {
-        alertList.innerHTML = `<div class="vr-alert-item"><div class="vr-alert-icon">🚑</div><div><div class="vr-alert-text">Dispatching ${nearest.id}</div><div class="vr-alert-loc">Distance: ${distKm} km</div></div></div>` + alertList.innerHTML;
+        alertList.innerHTML = \`<div class="vr-alert-item"><div class="vr-alert-icon">🚑</div><div><div class="vr-alert-text">Dispatching \${nearest.id}</div><div class="vr-alert-loc">ETA: \${etaMin} min (\${distKm} km)</div></div></div>\` + alertList.innerHTML;
       }
 
       isDispatching = true;
-      let step = 0, totalSteps = 60;
+      
+      // Calculate realistic animation speed. 
+      // We'll scale the real duration (seconds) down so it's viewable but not instantaneous.
+      // E.g. A 10 minute drive (600s) takes 6 seconds in demo time.
+      const demoDurationMs = Math.max(3000, durationSeconds * 10); 
+      const fps = 30;
+      const totalSteps = Math.floor(demoDurationMs / (1000 / fps));
+      let step = 0;
+      
+      // Compute total segments lengths to normalize movement
+      let totalLength = 0;
+      let segments = [];
+      for(let i = 0; i < routeCoords.length - 1; i++) {
+        let p1 = routeCoords[i], p2 = routeCoords[i+1];
+        let len = demoMap.distance(p1, p2);
+        segments.push({p1, p2, len});
+        totalLength += len;
+      }
+
       const interval = setInterval(function() {
         step++;
         const progress = step / totalSteps;
-        let currentLat, currentLng;
-        if (progress < 0.5) {
-          const p2 = progress * 2;
-          currentLat = routeCoords[0][0] + (routeCoords[1][0] - routeCoords[0][0]) * p2;
-          currentLng = routeCoords[0][1] + (routeCoords[1][1] - routeCoords[0][1]) * p2;
-        } else {
-          const p2 = (progress - 0.5) * 2;
-          currentLat = routeCoords[1][0] + (routeCoords[2][0] - routeCoords[1][0]) * p2;
-          currentLng = routeCoords[1][1] + (routeCoords[2][1] - routeCoords[1][1]) * p2;
+        
+        let targetDist = progress * totalLength;
+        let currentDist = 0;
+        let currentLat = routeCoords[routeCoords.length-1][0];
+        let currentLng = routeCoords[routeCoords.length-1][1];
+
+        // Find which segment we are currently on
+        for(let i = 0; i < segments.length; i++) {
+          if (currentDist + segments[i].len >= targetDist) {
+             let segProgress = (targetDist - currentDist) / segments[i].len;
+             if (isNaN(segProgress) || !isFinite(segProgress)) segProgress = 1;
+             currentLat = segments[i].p1[0] + (segments[i].p2[0] - segments[i].p1[0]) * segProgress;
+             currentLng = segments[i].p1[1] + (segments[i].p2[1] - segments[i].p1[1]) * segProgress;
+             break;
+          }
+          currentDist += segments[i].len;
         }
 
         nearest.marker.setLatLng([currentLat, currentLng]);
@@ -135,7 +187,7 @@ function setupInteractiveDemo(demoMap, ambIcon, emgIcon) {
           currentEmgMarker = null;
           currentRouteLine = null;
         }
-      }, 50);
+      }, 1000 / fps);
     }, 600);
   });
 }
@@ -570,7 +622,12 @@ socket.on('error_message', (data) => {
 
 window.openModal = function(id) {
   const modal = document.getElementById(id);
-  if (modal) modal.classList.add('show');
+  if (modal) {
+    modal.classList.add('show');
+    if (id === 'vr-fleet-modal' && typeof renderFleetList === 'function') {
+      renderFleetList();
+    }
+  }
 };
 
 window.closeModal = function(e, id) {
@@ -606,4 +663,83 @@ window.switchDashTab = function(btn) {
 window.returnToLanding = function(sectionId) {
   sessionStorage.setItem('scrollToSection', sectionId);
   window.location.reload();
+};
+
+// ─── Fleet Management ─────────────────────────────────────────────────────────
+window.renderFleetList = function() {
+  const container = document.getElementById('vr-fleet-list');
+  if (!container) return;
+  container.innerHTML = '';
+
+  Object.values(ambulances).forEach(a => {
+    const item = document.createElement('div');
+    item.style = 'background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; display: flex; justify-content: space-between; align-items: center;';
+    
+    let statusColor = '#10b981'; // Green (IDLE)
+    if (['EN ROUTE', 'DISPATCHED'].includes(a.status)) statusColor = '#f59e0b'; // Yellow
+    if (a.status === 'AT SCENE') statusColor = '#ef4444'; // Red
+
+    item.innerHTML = `
+      <div>
+        <div style="font-weight: 600; color: #fff; margin-bottom: 4px;">${a.id}</div>
+        <div style="font-size: 12px; color: #94a3b8;">Status: <span style="color: ${statusColor}">${a.status}</span></div>
+      </div>
+      <button class="lp-btn-outline" style="padding: 4px 10px; font-size: 11px; border-color: #ef4444; color: #ef4444;" onclick="removeAmbulance('${a.id}')">Remove</button>
+    `;
+    container.appendChild(item);
+  });
+};
+
+window.addAmbulance = function() {
+  const idNum = Math.floor(Math.random() * 900) + 100;
+  const newId = `RESCUE-${idNum}`;
+  
+  // Random location around Delhi
+  const lat = 28.6139 + (Math.random() - 0.5) * 0.1;
+  const lng = 77.2090 + (Math.random() - 0.5) * 0.1;
+
+  ambulances[newId] = {
+    id: newId,
+    lat: lat,
+    lng: lng,
+    status: 'IDLE'
+  };
+
+  if (map) {
+    const ambIcon = L.divIcon({
+      className: 'demo-amb-marker',
+      html: '<div style="background:#3b82f6;border-radius:50%;color:#fff;display:flex;justify-content:center;align-items:center;box-shadow:0 0 10px #3b82f6, 0 0 20px #3b82f6;width:28px;height:28px;">A</div>',
+      iconSize: [28, 28], iconAnchor: [14, 14]
+    });
+    ambulances[newId].marker = L.marker([lat, lng], {icon: ambIcon}).addTo(map);
+  }
+
+  renderAll();
+  renderFleetList();
+  
+  if (window.toast) window.toast(`Added ${newId} to active fleet.`);
+};
+
+window.removeAmbulance = function(id) {
+  if (!ambulances[id]) return;
+  
+  // Cannot remove if busy
+  if (ambulances[id].status !== 'IDLE') {
+    if (window.toast) {
+      window.toast(`Cannot remove ${id} while it is ${ambulances[id].status}.`);
+    } else {
+      alert(`Cannot remove ${id} while it is ${ambulances[id].status}.`);
+    }
+    return;
+  }
+
+  if (ambulances[id].marker && map) {
+    map.removeLayer(ambulances[id].marker);
+  }
+
+  delete ambulances[id];
+  renderAll();
+  renderFleetList();
+  
+  if (window.toast) window.toast(`Removed ${id} from active fleet.`);
 };
