@@ -444,10 +444,14 @@ function renderHospitalsPanel() {
 function renderReadinessGauge() {
   const svg = document.getElementById('vr-readiness-gauge');
   if (!svg) return;
-  const total = Object.keys(ambulances).length || 14;
-  const available = Object.values(ambulances).filter(u=>u.status==='IDLE').length || 4;
-  const onDuty = Object.values(ambulances).filter(u=>['EN ROUTE','DISPATCHED'].includes(u.status)).length || 7;
-  const busy = Object.values(ambulances).filter(u=>u.status==='AT SCENE').length || 3;
+  let total = 14, available = 4, onDuty = 7, busy = 3;
+  const ambulanceKeys = Object.keys(ambulances);
+  if (ambulanceKeys.length > 0) {
+    total = ambulanceKeys.length;
+    available = Object.values(ambulances).filter(u=>u.status==='IDLE').length;
+    onDuty = Object.values(ambulances).filter(u=>['EN ROUTE','DISPATCHED'].includes(u.status)).length;
+    busy = Object.values(ambulances).filter(u=>u.status==='AT SCENE').length;
+  }
   const pct = Math.round(((available + onDuty) / Math.max(total,1)) * 100) || 65;
 
   const r = 48, cx = 60, cy = 60;
@@ -498,10 +502,15 @@ function renderAlerts() {
 function renderVehicleStatus() {
   const svg = document.getElementById('vr-vehicle-gauge');
   if (!svg) return;
-  const total = Object.keys(ambulances).length || 14;
-  const onMission = Object.values(ambulances).filter(u=>['EN ROUTE','DISPATCHED'].includes(u.status)).length || 7;
-  const available = Object.values(ambulances).filter(u=>u.status==='IDLE').length || 4;
+  let totalActive = 11, onMission = 7, available = 4;
+  const ambulanceKeys = Object.keys(ambulances);
+  if (ambulanceKeys.length > 0) {
+    totalActive = ambulanceKeys.length;
+    onMission = Object.values(ambulances).filter(u=>['EN ROUTE','DISPATCHED'].includes(u.status)).length;
+    available = Object.values(ambulances).filter(u=>u.status==='IDLE').length;
+  }
   const maint = 2, offline = 1;
+  const total = totalActive + maint + offline;
 
   const r = 48, cx = 60, cy = 60;
   const circumference = 2 * Math.PI * r;
